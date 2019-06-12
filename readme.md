@@ -12,3 +12,28 @@ nginx example app
 
 f5 & k8s ingress controller
 * https://clouddocs.f5.com/containers/v2/kubernetes/kctlr-app-install.html
+
+nginx-ingress VirtualServer
+
+```yaml
+apiVersion: k8s.nginx.org/v1alpha1
+kind: VirtualServer
+metadata:
+  name: cafe
+spec:
+  host: recruiting.acmefinancial.net
+  upstreams:
+  - name: recruiting-v1
+    service: recruiting-v1-svc
+    port: 80
+  - name: recruiting-v2 
+    service: recruiting-v2-svc
+    port: 80
+  routes:
+  - path: /
+    splits:
+    - weight: 100
+      upstream: recruiting-v1
+    - weight: 0
+      upstream: recruiting-v2
+```
