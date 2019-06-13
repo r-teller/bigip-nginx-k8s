@@ -14,6 +14,13 @@ nginx example app
 f5 & k8s ingress controller
 * https://clouddocs.f5.com/containers/v2/kubernetes/kctlr-app-install.html
 
+## Notes -
+### Scaling KOPS worker nodes from 1 to 2
+```bash
+kops get ig nodes -o json | jq '.spec.minSize=2|.spec.maxSize=2' | kops replace -f /dev/stdin
+kops update cluster --yes
+```
+
 ## nginx Deployment & Service
 ```yaml
 apiVersion: apps/v1
@@ -96,7 +103,7 @@ spec:
   - name: recruiting-v1
     service: recruiting-v1-svc
     port: 80
-  - name: recruiting-v2 
+  - name: recruiting-v2
     service: recruiting-v2-svc
     port: 80
   routes:
