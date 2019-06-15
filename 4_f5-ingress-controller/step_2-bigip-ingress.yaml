@@ -2,7 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: k8s-bigip-ctlr-deployment
-  namespace: kube-system
+  namespace: bigip-ingress
 spec:
   # DO NOT INCREASE REPLICA COUNT
   replicas: 1
@@ -40,7 +40,7 @@ spec:
             # https://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/latest
             "--bigip-username=$(BIGIP_USERNAME)",
             "--bigip-password=$(BIGIP_PASSWORD)",
-            "--bigip-url=https://172.20.44.118",
+            "--bigip-url=https://172.20.44.118:8443",
             "--bigip-partition=nginx",
             "--pool-member-type=nodeport"
             ]

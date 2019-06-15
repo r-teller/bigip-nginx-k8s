@@ -17,9 +17,15 @@ f5 & k8s ingress controller
 ## Notes -
 ### Scaling KOPS worker nodes from 1 to 2
 ```bash
-kops get ig nodes -o json | jq '.spec.minSize=2|.spec.maxSize=2' | kops replace -f /dev/stdin
-kops update cluster --yes
+    kops get ig nodes -o json | jq '.spec.minSize=1|.spec.maxSize=1' | kops replace -f /dev/stdin
+    kops update cluster --yes
 ```
+### Disabling Web Session Consistent IP
+
+```bash
+    tmsh modify sys httpd auth-pam-validate-ip off
+```
+
 
 ## nginx Deployment & Service
 ```yaml
