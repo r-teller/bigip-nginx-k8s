@@ -1,0 +1,13 @@
+apiVersion: k8s.nginx.org/v1alpha1
+kind: VirtualServer
+metadata:
+  name: financial-reporting
+spec:
+  host: reporting.acmefinancial.net
+  upstreams:
+  - name: financial-reporting-v1
+    service: financial-reporting-v1-svc
+    port: 80
+  routes:
+  - path: /
+    upstream: financial-reporting-v1

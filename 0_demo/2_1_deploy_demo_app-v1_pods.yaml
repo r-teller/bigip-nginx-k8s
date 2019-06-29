@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: financial-reporting-v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: financial-reporting-v1
+  template:
+    metadata:
+      labels:
+        app: financial-reporting-v1
+    spec:
+      containers:
+      - name: financial-reporting-v1
+        image: rteller/hello:green
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
