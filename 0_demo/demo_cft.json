@@ -648,20 +648,6 @@
             }
         },
         "EC2JumpHost": {
-            "Metadata": {
-                "AWS::CloudFormation::Init": {
-                    "config": {
-                        "files": {
-                            "/tmp/kops_deploy.sh": {
-                                "group":  "root",
-                                "mode":  "000755",
-                                "owner":  "root",
-                                "source":  "https://raw.githubusercontent.com/r-teller/bigip-nginx-k8s/master/1_scripts/shell/kops_deploy.sh"
-                            }
-                        }
-                    }
-                }
-            },
             "Type" : "AWS::EC2::Instance",
             "Properties": {
                 "KeyName": {
@@ -734,6 +720,8 @@
                                 { "Fn::Sub": [ "export KOPS_SUBNET_ID=${SubnetID}\n", { "SubnetID": {"Ref": "PrivateSubnet01AzA"} }]},
                                 { "Fn::Sub": [ "export KOPS_AVAIL_ZONES=${AZ}\n", { "AZ": {"Fn::GetAtt" : [ "PrivateSubnet01AzA" , "AvailabilityZone" ]} }]},
                                 { "Fn::Sub": [ "export KOPS_SECURITY_GROUP=${SG}\n", {"SG": {"Ref" : "SecurityGroupPrivate"} }]},
+                                "sudo -u ubuntu mkdir /home/ubntu/bigip-nginx-k8s",
+                                "sudo -u ubuntu git clone https://github.com/r-teller/bigip-nginx-k8s.git /home/ubntu/bigip-nginx-k8s",
                                 "sudo -u ubuntu kops create cluster \\\n\t
                                     --state=${KOPS_STATE_STORE} \\\n\t
                                     --cloud=aws \\\n\t
@@ -751,13 +739,7 @@
                                     --node-security-groups=${KOPS_SECURITY_GROUP} \\\n\t
                                     --master-size=t3.medium \\\n\t
                                     --ssh-public-key=/home/ubuntu/.ssh/authorized_keys \\\n\t
-                                    --name=${KOPS_NAME} --yes\n\n",
-                                    { "Fn::Sub": [ "export STACK_ID=${stackID}\n", { "stackID": {"Ref": "AWS::StackId"} }]},
-                                    { "Fn::Sub": [ "export Region=${region}\n", { "region": {"Ref": "AWS::Region"} }]},
-                                    "/opt/aws/apitools/cfn-init/bin/cfn-init -v \\\n\t
-                                    -s ${STACK_ID} \\\n\t
-                                    -r EC2JumpHost \\\n\t
-                                    --region ${Region} \n"
+                                    --name=${KOPS_NAME} --yes\n\n"
                             ]
                         ]
                     }
