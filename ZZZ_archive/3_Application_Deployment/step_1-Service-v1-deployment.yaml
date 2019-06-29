@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: financial-reporting-v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: financial-reporting-v1
+  template:
+    metadata:
+      labels:
+        app: financial-reporting-v1
+    spec:
+      containers:
+      - name: financial-reporting-v1
+        image: nginxdemos/hello:plain-text
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: financial-reporting-v1-svc
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: financial-reporting-v1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: financial-reporting-v2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: financial-reporting-v2
+  template:
+    metadata:
+      labels:
+        app: financial-reporting-v2
+    spec:
+      containers:
+      - name: financial-reporting-v2
+        image: nginxdemos/hello:plain-text
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: financial-reporting-v2-svc
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  type: NodePort
+  selector:
+    app: financial-reporting-v2

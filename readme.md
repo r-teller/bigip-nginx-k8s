@@ -21,11 +21,29 @@ f5 & k8s ingress controller
     kops update cluster --yes
 ```
 ### Disabling Web Session Consistent IP
-
 ```bash
     tmsh modify sys httpd auth-pam-validate-ip off
+    tmsh modify auth password-policy policy-enforcement disabled
 ```
 
+### Query AWS to find an AMI in all regions
+```bash
+    # jq -c '.[]' file | while read js; do
+    #   curl -u username@password -H "Content-Type: application/json" -d @<(echo "$js") http://apiurl.com
+    # done
+    # "eu-north-1": { "AMI": "ami-5ee66f20" },
+    amiMAP='{}'
+    for region in `aws ec2 describe-regions --output text --query 'Regions[*].{ID:RegionName}'`
+    do
+        amiID=`aws ec2 describe-images  --filters \
+            "Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-20190212.1" \
+            "Name=owner-id,Values=099720109477" \
+            --region ${region} --query 'Images[*].{ID:ImageId}' --output text`
+
+         amiMAP=`echo $amiMAP | jq --arg region "$region" --arg amiID "$amiID" '.[$region]={"AMI": $amiID}'`
+    done
+    echo $amiMAP
+```
 
 ## nginx Deployment & Service
 ```yaml
