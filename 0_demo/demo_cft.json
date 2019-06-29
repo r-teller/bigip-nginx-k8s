@@ -648,6 +648,20 @@
             }
         },
         "EC2JumpHost": {
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "config": {
+                        "files": {
+                            "/tmp/kops_deploy.sh": {
+                                "group":  "root",
+                                "mode":  "000755",
+                                "owner":  "root",
+                                "source":  "https://raw.githubusercontent.com/r-teller/bigip-nginx-k8s/master/1_scripts/shell/kops_deploy.sh"
+                            }
+                        }
+                    }
+                }
+            },
             "Type" : "AWS::EC2::Instance",
             "Properties": {
                 "KeyName": {
@@ -737,7 +751,13 @@
                                     --node-security-groups=${KOPS_SECURITY_GROUP} \\\n\t
                                     --master-size=t3.medium \\\n\t
                                     --ssh-public-key=/home/ubuntu/.ssh/authorized_keys \\\n\t
-                                    --name=${KOPS_NAME} --yes\n"
+                                    --name=${KOPS_NAME} --yes\n\n",
+                                    { "Fn::Sub": [ "export STACK_ID=${stackID}\n", { "stackID": {"Ref": "AWS::StackId"} }]},
+                                    { "Fn::Sub": [ "export Region=${region}\n", { "region": {"Ref": "AWS::Region"} }]},
+                                    "/opt/aws/apitools/cfn-init/bin/cfn-init -v \\\n\t
+                                    -s ${STACK_ID} \\\n\t
+                                    -r EC2JumpHost \\\n\t
+                                    --region ${Region} \n"
                             ]
                         ]
                     }
@@ -802,7 +822,6 @@
             }
         },
         "EC2BigIPPAYG": {
-            "Type" : "AWS::EC2::Instance",
             "Metadata": {
                 "AWS::CloudFormation::Init": {
                     "config": {
@@ -812,6 +831,18 @@
                                 "mode":  "000755",
                                 "owner":  "root",
                                 "source":  "http://cdn.f5.com/product/templates/utils/firstrun.utils"
+                            },
+                            "/tmp/bigip_utils.sh": {
+                                "group":  "root",
+                                "mode":  "000755",
+                                "owner":  "root",
+                                "source":  "https://raw.githubusercontent.com/r-teller/bigip-nginx-k8s/master/1_scripts/shell/bigip_utils.sh"
+                            },
+                            "/tmp/bigip_firstrun.sh": {
+                                "group":  "root",
+                                "mode":  "000755",
+                                "owner":  "root",
+                                "source":  "https://raw.githubusercontent.com/r-teller/bigip-nginx-k8s/master/1_scripts/shell/bigip_firstrun.sh"
                             },
                             "/tmp/firstrun.sh": {
                                 "content": {
@@ -893,6 +924,7 @@
                     }
                 }
             },
+            "Type" : "AWS::EC2::Instance",
             "Properties": {
                 "KeyName": {
                   "Ref": "ExistingKeyPairName"
