@@ -436,7 +436,7 @@
                 "SecurityGroupIngress": [
                 {
                     "IpProtocol": "-1",
-                    "CidrIp": "10.10.3.0/24",
+                    "CidrIp": "10.10.0.0/16",
                     "Description": "Allow all traffic in private network"
                 }],
                 "GroupDescription": "Allow all traffic in private network",
@@ -720,8 +720,8 @@
                                 { "Fn::Sub": [ "export KOPS_SUBNET_ID=${SubnetID}\n", { "SubnetID": {"Ref": "PrivateSubnet01AzA"} }]},
                                 { "Fn::Sub": [ "export KOPS_AVAIL_ZONES=${AZ}\n", { "AZ": {"Fn::GetAtt" : [ "PrivateSubnet01AzA" , "AvailabilityZone" ]} }]},
                                 { "Fn::Sub": [ "export KOPS_SECURITY_GROUP=${SG}\n", {"SG": {"Ref" : "SecurityGroupPrivate"} }]},
-                                "sudo -u ubuntu mkdir /home/ubntu/bigip-nginx-k8s",
-                                "sudo -u ubuntu git clone https://github.com/r-teller/bigip-nginx-k8s.git /home/ubntu/bigip-nginx-k8s",
+                                "sudo -u ubuntu mkdir /home/ubuntu/bigip-nginx-k8s\n",
+                                "sudo -u ubuntu git clone https://github.com/r-teller/bigip-nginx-k8s.git /home/ubuntu/bigip-nginx-k8s\n",
                                 "sudo -u ubuntu kops create cluster \\\n\t
                                     --state=${KOPS_STATE_STORE} \\\n\t
                                     --cloud=aws \\\n\t
@@ -739,7 +739,9 @@
                                     --node-security-groups=${KOPS_SECURITY_GROUP} \\\n\t
                                     --master-size=t3.medium \\\n\t
                                     --ssh-public-key=/home/ubuntu/.ssh/authorized_keys \\\n\t
-                                    --name=${KOPS_NAME} --yes\n\n"
+                                    --name=${KOPS_NAME} --yes\n\n",
+                                "\n### Store BIG-IP Creds as k8s secret\n",
+                                { "Fn::Sub": [ "kubectl create secret generic bigip-login --namespace bigip-ingress --from-literal=username=BigIPk8s --from-literal=password=${BigIPk8s_PWD}\n", { "BigIPk8s_PWD": {"Ref": "EC2BigIPPAYG"} }]}
                             ]
                         ]
                     }
@@ -819,12 +821,6 @@
                                 "mode":  "000755",
                                 "owner":  "root",
                                 "source":  "https://raw.githubusercontent.com/r-teller/bigip-nginx-k8s/master/1_scripts/shell/bigip_utils.sh"
-                            },
-                            "/tmp/bigip_firstrun.sh": {
-                                "group":  "root",
-                                "mode":  "000755",
-                                "owner":  "root",
-                                "source":  "https://raw.githubusercontent.com/r-teller/bigip-nginx-k8s/master/1_scripts/shell/bigip_firstrun.sh"
                             },
                             "/tmp/firstrun.sh": {
                                 "content": {
