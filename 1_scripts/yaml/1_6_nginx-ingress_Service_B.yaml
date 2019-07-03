@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-ingress
+  name: nginx-ingress-controller-b
   namespace: nginx-ingress
 spec:
   type: NodePort
@@ -15,4 +15,4 @@ spec:
     protocol: TCP
     name: https
   selector:
-    app: nginx-ingress
+    app: nginx-ingress-controller-b
