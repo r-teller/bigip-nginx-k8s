@@ -28,11 +28,26 @@ f5 & k8s ingress controller
 
 ### Query AWS to find an AMI in all regions
 ```bash
-    # jq -c '.[]' file | while read js; do
-    #   curl -u username@password -H "Content-Type: application/json" -d @<(echo "$js") http://apiurl.com
-    # done
-    # "eu-north-1": { "AMI": "ami-5ee66f20" },
-    amiMAP='{}'
+    ## Create a list of all Ubuntu AMI per region
+
+    productCode=`curl http://169.254.169.254/latest/meta-data/product-codes`  
+    aws ec2 describe-images --filters "Name=product-code,Values=rsd47wz2xdfqgesz2soj5xum" "Name=description,Values=F5 BIGIP-14.1.0.3-0.0.6 PAYG-Best 200Mbps*"
+
+    aws ec2 describe-images  --filters \
+        "Name=name,Values=*BIGIP*14.1.0.3-0.0.6*PAYG*Best*200M*" \
+         --query 'Images[*].{Name:Name,ID:ImageId,Owner:OwnerId,CreationDate:CreationDate,Code:ProductCodes.ProductCodeId}' --output text
+    amiMAP='{}'    
+    for region in `aws ec2 describe-regions --output text --query 'Regions[*].{ID:RegionName}'`
+    do
+        amiID=`aws ec2 describe-images  --filters \
+            "Name=product-code,Values=rsd47wz2xdfqgesz2soj5xum" \
+            "Name=description,Values=F5 BIGIP-14.1.0.3-0.0.6 PAYG-Best 200Mbps*" \
+            "Name=owner-id,Values=679593333241" \
+            --region ${region} --query 'Images[*].{ID:ImageId}' --output text`
+
+         amiMAP=`echo $amiMAP | jq --arg region "$region" --arg amiID "$amiID" '.[$region]={"AMI": $amiID}'`
+    done
+
     for region in `aws ec2 describe-regions --output text --query 'Regions[*].{ID:RegionName}'`
     do
         amiID=`aws ec2 describe-images  --filters \

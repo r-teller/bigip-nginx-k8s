@@ -4,7 +4,7 @@
         "AWS::CloudFormation::Interface" : {
             "ParameterGroups" : [
                 {
-                "Parameters" : ["EnvironmentName","BIGIPType","ExistingKeyPairName" ]
+                "Parameters" : [ "BIGIPType","ExistingKeyPairName" ]
                 }
             ]
         }
@@ -18,11 +18,6 @@
               "Pay-As-You-Go",
               "Bring-Your-Own-License"
             ]
-        },
-        "EnvironmentName":{
-            "Description": "Name for your environment",
-            "AllowedPattern": "[a-zA-Z]+$",
-            "Type": "String"
         },
         "ExistingKeyPairName": {
           "Description": "Select an existing EC2 key pair to enable SSH access to the instance.",
@@ -67,8 +62,7 @@
                         }
                     }
                 ]
-            },
-            "DependsOn" : "IAMRoleKOPS"
+            }
         },
         "InternetGateway": {
             "Type": "AWS::EC2::InternetGateway",
@@ -89,25 +83,22 @@
                         }
                     }
                 ]
-            },
-            "DependsOn" : "IAMRoleKOPS"
+            }
         },
         "ElasticIPNatGW": {
             "Type" : "AWS::EC2::EIP",
             "Properties" : {
                 "Domain" : "vpc"
-            },
-            "DependsOn" : "IAMRoleKOPS"
+            }
         },
         "ElasticIPBigIP02": {
             "Type" : "AWS::EC2::EIP",
             "Properties" : {
                 "Domain" : "vpc"
-            },
-            "DependsOn" : "IAMRoleKOPS"
+            }
         },
         "AssociateElasticIPBigIP02" : {
-            "Condition": "False",
+            
             "Type" : "AWS::EC2::EIPAssociation",
             "Properties" : {
                 "AllocationId" : { "Fn::GetAtt" : [ "ElasticIPBigIP02", "AllocationId" ]},
@@ -135,8 +126,7 @@
                         }
                     }
                 ]
-            },
-            "DependsOn" : "IAMRoleKOPS"
+            }
         },
         "InternetGatewayAttachment": {
             "Type": "AWS::EC2::VPCGatewayAttachment",
@@ -522,7 +512,7 @@
             }
         },
         "ENAPrivateJumpHost01":{
-            "Condition": "False",
+            
             "Type": "AWS::EC2::NetworkInterface",
             "Properties": {
                 "SourceDestCheck": false,
@@ -557,7 +547,7 @@
             }
         },
         "ENAPublicBigIP01":{
-            "Condition": "False",
+            
             "Type": "AWS::EC2::NetworkInterface",
             "Properties": {
                 "SourceDestCheck": false,
@@ -595,7 +585,7 @@
             }
         },
         "ENAPublicBigIP02":{
-            "Condition": "False",
+            
             "Type": "AWS::EC2::NetworkInterface",
             "Properties": {
                 "SourceDestCheck": false,
@@ -634,7 +624,7 @@
             }
         },
         "ENAPrivateBigIP01":{
-            "Condition": "False",
+            
             "Type": "AWS::EC2::NetworkInterface",
             "Properties": {
                 "SourceDestCheck": false,
@@ -673,7 +663,7 @@
             }
         },
         "EC2JumpHost": {
-            "Condition": "False",
+            
             "Type" : "AWS::EC2::Instance",
             "Properties": {
                 "KeyName": {
@@ -766,263 +756,15 @@
                                     "\t--master-size=t3.medium \\\n",
                                     "\t--ssh-public-key=/home/ubuntu/.ssh/authorized_keys \\",
                                     "\t--name=${KOPS_NAME} --yes\n\n",
-                                "\n### Store BIG-IP Creds as k8s secret\n",
-                                { "Fn::Sub": [ "kubectl create secret generic bigip-login --namespace bigip-ingress --from-literal=username=BigIPk8s --from-literal=password=${BigIPk8s_PWD}\n", { "BigIPk8s_PWD": {"Ref": "EC2BigIPPAYG"} }]}
+                                    "\n### Store BIG-IP Creds as k8s secret\n",
+                                    { "Fn::Sub": [ "kubectl create secret generic bigip-login --namespace bigip-ingress --from-literal=username=BigIPk8s --from-literal=password=${BigIPk8s_PWD}\n", { "BigIPk8s_PWD": {"Ref": "EC2BigIPPAYG"} }]}
                             ]
                         ]
                     }
                 }
             }
         },
-        "EC2JumpHostV2": {
-            "Type" : "AWS::EC2::Instance",
-            "Metadata" : {
-                "AWS::CloudFormation::Init" : {
-                    "configSets" : {
-                        "InstallAndConfigure" : [ "Install","Configure" ]
-                    },
-                    "Install" : {
-                        "packages" : {
-                            "yum" : {
-                                "squid" : [],
-                                "jq": []
-                            }
-                        },
-                        "files": {
-                            "/tmp/bigip-nginx-k8s.tar.gz":{
-                                "group":  "root",
-                                "mode":  "000755",
-                                "owner":  "root",
-                                "source": "https://github.com/r-teller/bigip-nginx-k8s/tarball/master.tar.gz"
-                            },
-                            "/tmp/setup_host.sh": {
-                                "group":  "root",
-                                "mode":  "000755",
-                                "owner":  "root",
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "#!/bin/bash -xe\n",
-                                            "\n### Install kops\n",
-                                            "curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | jq -r .tag_name )/kops-linux-amd64\n",
-                                            "\n### Install kubectl\n",
-                                            "curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl\n",
-                                            "\n### Move kubectl and kops binary\n",
-                                            "chmod +x ./kubectl ./kops\n",
-                                            "sudo mv ./kubectl ./kops /usr/bin/\n",
-                                            "\n### Untar git repo\n",
-                                            "mkdir /tmp/bigip-nginx-k8s\n",
-                                            "tar -xvzf bigip-nginx-k8s.tar.gz --strip-components=1 -C /tmp/bigip-nginx-k8s\n",
-                                            "\n### Configure AWSCLI\n",
-                                            { "Fn::Sub": [ "echo export AWS_REGION=${AWS_REGION} >>  /etc/profile.d/88-all-profiles.sh\n", { "AWS_REGION": {"Ref" : "AWS::Region" }} ]},
-                                            { "Fn::Sub": [ "echo export AWS_VPC_ID=${AWS_VPC_ID} >>  /etc/profile.d/88-all-profiles.sh\n", { "AWS_VPC_ID": {"Ref" : "VPC" }} ]},
-                                            { "Fn::Sub": [ "echo export AWS_STACK_NAME=${AWS_STACK_NAME} >>  /etc/profile.d/88-all-profiles.sh\n", { "AWS_STACK_NAME": {"Ref" : "AWS::StackName" }} ]},
-                                            { "Fn::Sub": [ "echo export AWS_STACK_ENVIRONMENTNAME=${AWS_STACK_ENVIRONMENTNAME} >>  /etc/profile.d/88-all-profiles.sh\n", { "AWS_STACK_ENVIRONMENTNAME": {"Ref" : "EnvironmentName" }} ]},
-                                            { "Fn::Sub": [ "echo export KOPS_NAME=${AWS_STACK_ENVIRONMENTNAME}.k8s.local >> /etc/profile.d/88-all-profiles.sh\n", { "AWS_STACK_ENVIRONMENTNAME": {"Ref" : "EnvironmentName" }} ]},
-                                            { "Fn::Sub": [ "echo export KOPS_STATE_STORE=s3://${BucketName}  >> /etc/profile.d/88-all-profiles.sh\n", { "BucketName": {"Ref": "S3BucketKOPS"} }]},
-                                            { "Fn::Sub": [ "sudo -u ec2-user aws configure set region ${AWS_REGION}\n", { "AWS_REGION": {"Ref" : "AWS::Region" }} ]}
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/tmp/provision_kops.sh": {
-                                "group":  "root",
-                                "mode":  "000755",
-                                "owner":  "root",
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "#!/bin/bash -xe\n",
-                                            "\n### Start configuration based on environment values\n",
-                                            { "Fn::Sub": [ "export KOPS_VPC_ID=${vpcID}\n", { "vpcID": {"Ref": "VPC"} }]},
-                                            { "Fn::Sub": [ "export KOPS_SUBNET_ID=${SubnetID}\n", { "SubnetID": {"Ref": "PrivateSubnet01AzA"} }]},
-                                            { "Fn::Sub": [ "export KOPS_AVAIL_ZONES=${AZ}\n", { "AZ": {"Fn::GetAtt" : [ "PrivateSubnet01AzA" , "AvailabilityZone" ]} }]},
-                                            { "Fn::Sub": [ "export KOPS_SECURITY_GROUP=${SG}\n", {"SG": {"Ref" : "SecurityGroupPrivate"} }]},
-                                            { "Fn::Sub": [ "export KOPS_NAME=${AWS_STACK_ENVIRONMENTNAME}.k8s.local\n", { "AWS_STACK_ENVIRONMENTNAME": {"Ref" : "EnvironmentName" }} ]},
-                                            { "Fn::Sub": [ "export KOPS_STATE_STORE=s3://${BucketName}\n", { "BucketName": {"Ref": "S3BucketKOPS"} }]},
-                                            "sudo -u ec2-user kops create cluster \\\n",
-                                                "\t--state=${KOPS_STATE_STORE} \\\n",
-                                                "\t--cloud=aws \\\n",
-                                                "\t--vpc=${KOPS_VPC_ID} \\\n",
-                                                "\t--master-zones=${KOPS_AVAIL_ZONES} \\\n",
-                                                "\t--master-security-groups=${KOPS_SECURITY_GROUP} \\\n",
-                                                "\t--zones=${KOPS_AVAIL_ZONES} \\\n",
-                                                "\t--subnets=${KOPS_SUBNET_ID} \\\n",
-                                                "\t--utility-subnets=${KOPS_SUBNET_ID} \\\n",
-                                                "\t--node-count=1 \\\n",
-                                                "\t--topology=private \\\n",
-                                                "\t--api-loadbalancer-type=internal \\\n",
-                                                "\t--networking=kopeio-vxlan \\\n",
-                                                "\t--node-size=t3.medium \\\n",
-                                                "\t--node-security-groups=${KOPS_SECURITY_GROUP} \\\n",
-                                                "\t--master-size=t3.medium \\\n",
-                                                "\t--ssh-public-key=/home/ec2-user/.ssh/authorized_keys \\\n",
-                                                "\t--name=${KOPS_NAME} --yes\n\n"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/tmp/protect_stack.sh": {
-                                "group":  "root",
-                                "mode":  "000755",
-                                "owner":  "root",
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "#!/bin/bash -xe\n\n",
-                                            "### Protect stack from termination, to prevent orphaned k8s deployments\n",
-                                            "### run /tmp/deprovision_stack.sh to delete the stack\n",
-                                            { "Fn::Sub": [ "sudo -u ec2-user aws cloudformation update-termination-protection --enable-termination-protection --stack-name ${StackName}\n", { "StackName": {"Ref" : "AWS::StackName" }} ]}
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/tmp/deprovision_stack.sh": {
-                                "group":  "root",
-                                "mode":  "000755",
-                                "owner":  "root",
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "#!/bin/bash -xe\n\n",
-                                            "### Unprotects stack from termination\n",
-                                            { "Fn::Sub": [ "aws cloudformation update-termination-protection --no-enable-termination-protection --stack-name ${StackName}\n", { "StackName": {"Ref" : "AWS::StackName" }} ]},
-                                            "\n### Delets k8s cluster\n",
-                                            "kops delete cluster \\\n",
-                                                "\t--state=${KOPS_STATE_STORE} \\\n",
-                                                "\t--name=${KOPS_NAME} --yes\n\n",
-                                            "\n### Delets Stack\n",
-                                            { "Fn::Sub": [ "aws cloudformation delete-stack --stack-name ${StackName} --region ${Region}\n", {
-                                                        "StackName": {"Ref" : "AWS::StackName" },
-                                                        "Region": {"Ref": "AWS::Region"}
-                                                    }
-                                                ]
-                                            }
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/tmp/setup_k8s.sh": {
-                                "group":  "root",
-                                "mode":  "000755",
-                                "owner":  "root",
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "#!/bin/bash -xe\n\n",
-                                            "echo 'Waiting for k8s master node to be ready'\n",
-                                            "date\n"
-                                            "K8s_STATUS=`kubectl get nodes -l kubernetes.io/role=master -o json | jq '.items|length'`\n",
-                                            "while [[ ${K8s_STATUS} -lt 1 ]]; do\n",
-                                            "    sleep 5;\n",
-                                            "    echo -n '.';\n",
-                                            "    K8s_STATUS=`kubectl get nodes -l kubernetes.io/role=master -o json | jq '.items|length'`;\n",
-                                            "done\n\n",
-                                            "echo 'provisioning nginx-ingress'\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_1_nginx-ingress_ns-sa-cm.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_2_nginx-ingress_rbac.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_3_nginx-ingress_CustomResourceDefinition.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_6_nginx-ingress_service.yaml\n",
-                                            "done\n\n",
-                                            "echo 'provisioning bigip-ingress'\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_1_bigip-ingress_ns.yaml\n",
-                                            { "Fn::Sub": [ "kubectl create secret generic bigip-ctlr --namespace bigip-ingress --from-literal=username=BigIPk8s --from-literal=password=${EC2BigIPPAYG}\n", { "EC2BigIPPAYG": {"Ref" : "EC2BigIPPAYG" }} ]},
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_2_bigip-ingress_rbac.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_3_bigip-ingress_Deployment.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_4_bigip-ingress_Ingress.yaml\n"
-                                        ]
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "Configure": {
-                        "commands": {
-                            "01_setup_host": {
-                                "command":  "/tmp/setup_host.sh\n "
-                            },
-                            "02_provision_kops": {
-                                "command":  "/tmp/provision_kops.sh\n "
-                            },
-                            "03_protect_stack":{
-                                "command": "/tmp/protect_stack.sh\n"
-                            }
-                        }
-                    }
-                }
-            },
-            "Properties": {
-                "KeyName": {
-                  "Ref": "ExistingKeyPairName"
-                },
-                "IamInstanceProfile" : {"Ref" : "InstanceProfile"},
-                "NetworkInterfaces": [
-                     {
-                        "Description": "Public Interface",
-                        "DeviceIndex": "0",
-                        "NetworkInterfaceId":
-                        {
-                            "Ref": "ENAPublicJumpHost01"
-                        }
-                    }
-                ],
-                "InstanceType": "t3.medium",
-                "ImageId": {
-                  "Fn::FindInMap": [
-                    "AWSLinux2",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    "AMI"
-                  ]
-                },
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": {
-                            "Fn::Join": [
-                                "-",
-                                [
-                                    {
-                                        "Ref": "AWS::StackName"
-                                    },
-                                    "JumpHost"
-                                ]
-                            ]
-                        }
-                    },
-                    {
-                        "Key": "Environment",
-                        "Value": "bigip-k8s-nginx"
-                    }
-                ],
-                "UserData": {
-                    "Fn::Base64": {
-                        "Fn::Join": [
-                            "",
-                            [
-                                "#!/bin/bash  -xe\n",
-                                "\n## Update aws-cfn if required\n",
-                                "yum update aws-cfn-bootstrap\n",
-                                "\n## Install required applications\n",
-                                { "Fn::Sub": [ "export STACK_ID=${stackID}\n", { "stackID": {"Ref": "AWS::StackId"} }]},
-                                { "Fn::Sub": [ "export Region=${region}\n", { "region": {"Ref": "AWS::Region"} }]},
-                                "/opt/aws/apitools/cfn-init/bin/cfn-init -v \\\n",
-                                "\t--configsets InstallAndConfigure \\\n",
-                                "\t--stack ${STACK_ID} \\\n",
-                                "\t--resource EC2JumpHostV2 \\\n",
-                                "\t--region ${Region} \n"
-                            ]
-                        ]
-                    }
-                }
-            }
-        },
+
         "S3BucketKOPS":{
             "Type" : "AWS::S3::Bucket",
             "Properties": {
@@ -1037,8 +779,7 @@
                         ]
                     ]
                 }
-            },
-            "DependsOn" : "IAMRoleKOPS"
+            }
         },
         "InstanceProfile" : {
             "Type" : "AWS::IAM::InstanceProfile",
@@ -1050,52 +791,27 @@
         "IAMRoleKOPS" : {
           "Type" : "AWS::IAM::Role",
           "Properties" : {
-                "RoleName" : {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "kops-iam-role"
-                        ]
-                    ]
-                },
-                "Path" : "/",
-                "Policies": [ {
-                    "PolicyName": "root",
-                    "PolicyDocument": {
-                        "Version" : "2012-10-17",
-                        "Statement": [
-                            {
-                                "Effect": "Allow",
-                                "Action": [
-                                    "cloudformation:Get*",
-                                    "cloudformation:DeleteStack",
-                                    "cloudformation:UpdateTerminationProtection"
-                                ],
-                                "Resource": {
-                                    "Ref": "AWS::StackId"
-                                }
-                            }, {
-                                    "Effect": "Allow",
-                                    "Action": "s3:*",
-                                    "Resource": "*"
-                            }, {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "ec2:*",
-                                        "elasticloadbalancing:*",
-                                        "autoscaling:*",
-                                        "iam:*"
-                                    ],
-                                    "Resource": "*"
-                            }
-                        ]
-                    }
-                } ],
-                "AssumeRolePolicyDocument": {
-                    "Version": "2012-10-17",
+              "RoleName" : {
+                  "Fn::Join": [
+                      "-",
+                      [
+                          {
+                              "Ref": "AWS::StackName"
+                          },
+                          "kops-iam-role"
+                      ]
+                  ]
+              },
+              "Path" : "/",
+              "ManagedPolicyArns" : [
+                  "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
+                  "arn:aws:iam::aws:policy/AmazonRoute53FullAccess",
+                  "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+                  "arn:aws:iam::aws:policy/AmazonVPCFullAccess",
+                  "arn:aws:iam::aws:policy/IAMFullAccess"
+              ],
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
                     "Statement": [{
                         "Effect": "Allow",
                         "Principal": {
@@ -1107,7 +823,7 @@
             }
         },
         "EC2BigIPPAYG": {
-            "Condition": "False",
+            
             "Metadata": {
                 "AWS::CloudFormation::Init": {
                     "config": {
@@ -1268,7 +984,7 @@
             }
         },
         "AttachENAPublicBigIP02": {
-            "Condition": "False",
+            
             "Type" : "AWS::EC2::NetworkInterfaceAttachment",
                 "Properties" : {
                     "InstanceId" : {"Ref" : "EC2BigIPPAYG"},
@@ -1277,7 +993,7 @@
                 }
         },
         "AttachENAPrivateBigIP01": {
-            "Condition": "False",
+            
             "Type" : "AWS::EC2::NetworkInterfaceAttachment",
                 "Properties" : {
                     "InstanceId" : {"Ref" : "EC2BigIPPAYG"},
@@ -1350,7 +1066,7 @@
             }
         },
         "BIGIP": {
-            "Condition": "False",
+            
             "Description": "BIGIP Mgmt Address",
             "Value":
                 {
@@ -1364,13 +1080,9 @@
                 }
         },
         "JumpHost": {
-            "Condition": "False",
+            
             "Description": "Jump Host FQDN",
             "Value": { "Fn::GetAtt" : [ "EC2JumpHost" , "PublicDnsName" ] }
-        },
-        "DeleteSyntax": {
-            "Description": "Use this command on the JumpHost to deprovision your stack",
-            "Value":"/tmp/deprovision_stack.sh"
         }
     }
 }

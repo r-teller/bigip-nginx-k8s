@@ -38,15 +38,15 @@ EC2_REGION=`curl -s 169.254.169.254/latest/meta-data/placement/availability-zone
 ```bash
 ## Note move to CFT
 aws s3api create-bucket \
-    --bucket kops-testingv2 \
+    --bucket kops-demo-6-26 \
     --region $EC2_REGION \
     --create-bucket-configuration LocationConstraint=$EC2_REGION
 ```
 
 ### Store S3 Bucket Information as ENV
 ```bash
-export NAME=kops-demo.k8s.local
-export KOPS_STATE_STORE=s3://kops-testingv2
+export NAME=kops-demo-6-26.k8s.local
+export KOPS_STATE_STORE=s3://kops-demo-6-26
 ```
 
 ### Deploy kops
@@ -56,6 +56,8 @@ export KOPS_STATE_STORE=s3://kops-testingv2
 AVAIL_ZONES=`aws ec2 describe-availability-zones`
 INSTANCE_ID=`curl http://169.254.169.254/latest/meta-data/instance-id`
 VPC_ID=`aws ec2 describe-instances --instance-ids $INSTANCE_ID | jq -r .[][].Instances[].VpcId`
+MASTER_ZONES=`echo $AVAIL_ZONES | jq -r '.[][0].ZoneName'`
+
 if (( `echo $AVAIL_ZONES | jq '.AvailabilityZones|length'` >= 3 )); then
     MASTER_ZONES=`echo $AVAIL_ZONES | jq -r '.[]| map(.ZoneName) | join(",")'`
 else
@@ -69,8 +71,8 @@ kops create cluster \
     --vpc ${VPC_ID} \
     --master-zones us-west-1b \
     --zones us-west-1b \
-    --subnets subnet-0507641555fbcc808 \
-    --utility-subnets subnet-0507641555fbcc808 \
+    --subnets subnet-050344c013859e201 \
+    --utility-subnets subnet-050344c013859e201 \
     --node-count=1 \
     --topology private \
     --api-loadbalancer-type internal \

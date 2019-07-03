@@ -41,6 +41,7 @@ spec:
             "--bigip-username=$(BIGIP_USERNAME)",
             "--bigip-password=$(BIGIP_PASSWORD)",
             "--bigip-url=https://10.10.3.51",
+            "--bigip-partition=nginx",
             "--pool-member-type=nodeport",
             "--insecure=true"
             ]

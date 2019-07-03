@@ -14,6 +14,12 @@ rules:
   resourceNames: ["bigip-login"]
   verbs: ["get", "list", "watch"]
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bigip-ctlr
+  namespace: bigip-ingress
+---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:

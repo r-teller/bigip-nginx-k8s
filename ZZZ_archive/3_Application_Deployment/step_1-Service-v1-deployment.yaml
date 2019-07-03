@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: financial-reporting-v1
-        image: nginxdemos/hello:plain-text
+        image: rteller/hello:plain-text
         ports:
         - containerPort: 80
 ---
@@ -47,7 +47,7 @@ spec:
     spec:
       containers:
       - name: financial-reporting-v2
-        image: nginxdemos/hello:plain-text
+        image: rteller/hello:plain-text
         ports:
         - containerPort: 80
 ---
