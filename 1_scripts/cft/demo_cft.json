@@ -1210,7 +1210,11 @@
                                             { "Fn::Sub": [ "tmsh create net self ${Self_IP}", { "Self_IP": { "Fn::Select" : [0, {"Fn::GetAtt" : [ "ENAPrivateBigIP01" , "SecondaryPrivateIpAddresses" ]} ] } }]}, "/${dev2_pfx}  vlan internal allow-service default traffic-group traffic-group-1\n",
                                             "date\n",
                                             "echo 'create virtual-servers'\n",
-                                            { "Fn::Sub": [ "tmsh create ltm virtual k8s_vip_https destination ${Destination_IP}:443  profiles add { http {} clientssl { context clientside } } vlans add { external } source-address-translation { type automap }\n", { "Destination_IP": {"Fn::GetAtt" : [ "ENAPublicBigIP02" , "PrimaryPrivateIpAddress" ]} }]},
+                                            { "Fn::Sub": [
+                                                "tmsh create ltm virtual k8s_vip_https destination ${Destination_IP}:443  profiles add { http {} clientssl { context clientside } } vlans add { external } source-address-translation { type automap }\n",
+                                                { "Destination_IP": {
+                                                    "Fn::Select" : [2, {"Fn::GetAtt" : [ "ENAPublicBigIP02" , "SecondaryPrivateIpAddresses" ]}]
+                                                    } }]},
                                             "date\n",
                                             "# typically want to remove firstrun.config after first boot\n",
                                             "# rm /tmp/firstrun.config\n"

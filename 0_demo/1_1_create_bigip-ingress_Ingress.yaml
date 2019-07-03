@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: tester
+  name: bigip-ingress
   namespace: nginx-ingress
   annotations:
   # See the k8s-bigip-ctlr documentation for information about
@@ -11,5 +11,5 @@ metadata:
 spec:
   backend:
     # The name of the Service you want to expose to external traffic
-    serviceName: nginx-ingress
+    serviceName: nginx-ingress-controller-a
     servicePort: 80
