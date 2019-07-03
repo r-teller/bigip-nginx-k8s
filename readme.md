@@ -33,10 +33,12 @@ f5 & k8s ingress controller
     productCode=`curl http://169.254.169.254/latest/meta-data/product-codes`  
     aws ec2 describe-images --filters "Name=product-code,Values=rsd47wz2xdfqgesz2soj5xum" "Name=description,Values=F5 BIGIP-14.1.0.3-0.0.6 PAYG-Best 200Mbps*"
 
+    ami-056ee704806822732
+
     aws ec2 describe-images  --filters \
         "Name=name,Values=*BIGIP*14.1.0.3-0.0.6*PAYG*Best*200M*" \
          --query 'Images[*].{Name:Name,ID:ImageId,Owner:OwnerId,CreationDate:CreationDate,Code:ProductCodes.ProductCodeId}' --output text
-    amiMAP='{}'    
+    amiMAP='{}'
     for region in `aws ec2 describe-regions --output text --query 'Regions[*].{ID:RegionName}'`
     do
         amiID=`aws ec2 describe-images  --filters \
@@ -45,6 +47,18 @@ f5 & k8s ingress controller
             "Name=owner-id,Values=679593333241" \
             --region ${region} --query 'Images[*].{ID:ImageId}' --output text`
 
+         amiMAP=`echo $amiMAP | jq --arg region "$region" --arg amiID "$amiID" '.[$region]={"AMI": $amiID}'`
+    done
+
+    amiMAP='{}'
+    for region in `aws ec2 describe-regions --output text --query 'Regions[*].{ID:RegionName}'`
+    do
+        amiID=`aws ec2 describe-images  --filters \
+            "Name=name,Values=amzn2-ami-hvm-2.0.20190618-x86_64-gp2" \
+            "Name=owner-id,Values=137112412989" \
+            --region ${region} --query 'Images[*].{ID:ImageId}' --output text`
+
+        echo "${region} <> ${amiID}"
          amiMAP=`echo $amiMAP | jq --arg region "$region" --arg amiID "$amiID" '.[$region]={"AMI": $amiID}'`
     done
 

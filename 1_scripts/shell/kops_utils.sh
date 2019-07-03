@@ -18,7 +18,7 @@ function checkStatus() {
         checkretstatus="run";
 }
 
-function checkF5Ready {
+function checkK8sReady {
     sleep 5
     while [[ ! -e '/var/prompt/ps1' ]]; do
       echo -n '.'
