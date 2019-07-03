@@ -99,19 +99,34 @@
             },
             "DependsOn" : "IAMRoleKOPS"
         },
-        "ElasticIPBigIP02": {
+        "ElasticIPBigIP02A": {
             "Type" : "AWS::EC2::EIP",
             "Properties" : {
                 "Domain" : "vpc"
             },
             "DependsOn" : "IAMRoleKOPS"
         },
-        "AssociateElasticIPBigIP02" : {
-            "Condition": "False",
+        "ElasticIPBigIP02B": {
+            "Type" : "AWS::EC2::EIP",
+            "Properties" : {
+                "Domain" : "vpc"
+            },
+            "DependsOn" : "IAMRoleKOPS"
+        },
+        "AssociateElasticIPBigIP02A" : {
             "Type" : "AWS::EC2::EIPAssociation",
             "Properties" : {
-                "AllocationId" : { "Fn::GetAtt" : [ "ElasticIPBigIP02", "AllocationId" ]},
-                "NetworkInterfaceId" : { "Ref" : "ENAPublicBigIP02" }
+                "AllocationId" : { "Fn::GetAtt" : [ "ElasticIPBigIP02A", "AllocationId" ]},
+                "NetworkInterfaceId" : { "Ref" : "ENAPublicBigIP02" },
+                "PrivateIpAddress": {"Fn::Select": [2, {"Fn::GetAtt": ["ENAPublicBigIP02", "SecondaryPrivateIpAddresses"]}]}
+            }
+        },
+        "AssociateElasticIPBigIP02B" : {
+            "Type" : "AWS::EC2::EIPAssociation",
+            "Properties" : {
+                "AllocationId" : { "Fn::GetAtt" : [ "ElasticIPBigIP02B", "AllocationId" ]},
+                "NetworkInterfaceId" : { "Ref" : "ENAPublicBigIP02" },
+                "PrivateIpAddress": {"Fn::Select": [3, {"Fn::GetAtt": ["ENAPublicBigIP02", "SecondaryPrivateIpAddresses"]}]}
             }
         },
         "NatGateway": {
@@ -606,7 +621,9 @@
                 "PrivateIpAddresses": [
                     {"PrivateIpAddress": "10.10.2.50", "Primary": true},
                     {"PrivateIpAddress": "10.10.2.51", "Primary": false},
-                    {"PrivateIpAddress": "10.10.2.52", "Primary": false}
+                    {"PrivateIpAddress": "10.10.2.52", "Primary": false},
+                    {"PrivateIpAddress": "10.10.2.60", "Primary": false},
+                    {"PrivateIpAddress": "10.10.2.70", "Primary": false}
                 ],
                 "SubnetId": {
                     "Ref": "PublicSubnet02AzA"
@@ -782,16 +799,11 @@
                         "packages" : {
                             "yum" : {
                                 "squid" : [],
-                                "jq": []
+                                "jq": [],
+                                "git": []
                             }
                         },
                         "files": {
-                            "/tmp/bigip-nginx-k8s.tar.gz":{
-                                "group":  "root",
-                                "mode":  "000755",
-                                "owner":  "root",
-                                "source": "https://github.com/r-teller/bigip-nginx-k8s/tarball/master.tar.gz"
-                            },
                             "/tmp/setup_host.sh": {
                                 "group":  "root",
                                 "mode":  "000755",
@@ -808,9 +820,9 @@
                                             "\n### Move kubectl and kops binary\n",
                                             "chmod +x ./kubectl ./kops\n",
                                             "sudo mv ./kubectl ./kops /usr/bin/\n",
-                                            "\n### Untar git repo\n",
+                                            "\n### git bigip-nginx-k8s repo\n",
                                             "mkdir /tmp/bigip-nginx-k8s\n",
-                                            "tar -xvzf bigip-nginx-k8s.tar.gz --strip-components=1 -C /tmp/bigip-nginx-k8s\n",
+                                            "git clone https://github.com/r-teller/bigip-nginx-k8s /tmp/bigip-nginx-k8s\n",
                                             "\n### Configure AWSCLI\n",
                                             { "Fn::Sub": [ "echo export AWS_REGION=${AWS_REGION} >>  /etc/profile.d/88-all-profiles.sh\n", { "AWS_REGION": {"Ref" : "AWS::Region" }} ]},
                                             { "Fn::Sub": [ "echo export AWS_VPC_ID=${AWS_VPC_ID} >>  /etc/profile.d/88-all-profiles.sh\n", { "AWS_VPC_ID": {"Ref" : "VPC" }} ]},
@@ -851,7 +863,7 @@
                                                 "\t--node-count=1 \\\n",
                                                 "\t--topology=private \\\n",
                                                 "\t--api-loadbalancer-type=internal \\\n",
-                                                "\t--networking=kopeio-vxlan \\\n",
+                                                "\t--networking=amazon-vpc-routed-eni \\\n",
                                                 "\t--node-size=t3.medium \\\n",
                                                 "\t--node-security-groups=${KOPS_SECURITY_GROUP} \\\n",
                                                 "\t--master-size=t3.medium \\\n",
@@ -928,15 +940,16 @@
                                             "    echo -n '.';\n",
                                             "    K8s_STATUS=`kubectl get nodes -l kubernetes.io/role=node -o json | jq '.items|length'`;\n",
                                             "done\n\n",
+                                            "date\n",
                                             "echo 'provisioning nginx-ingress'\n",
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_1_nginx-ingress_ns-sa-cm.yaml\n",
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_2_nginx-ingress_rbac.yaml\n",
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_3_nginx-ingress_CustomResourceDefinition.yaml\n",
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_6_nginx-ingress_service.yaml\n",
-                                            "done\n\n",
+                                            "date\n",
                                             "echo 'provisioning bigip-ingress'\n",
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_1_bigip-ingress_ns.yaml\n",
-                                            { "Fn::Sub": [ "kubectl create secret generic bigip-ctlr --namespace bigip-ingress --from-literal=username=BigIPk8s --from-literal=password=${EC2BigIPPAYG}\n", { "EC2BigIPPAYG": {"Ref" : "EC2BigIPPAYG" }} ]},
+                                            { "Fn::Sub": [ "kubectl create secret generic bigip-login --namespace bigip-ingress --from-literal=username=BigIPk8s --from-literal=password=${EC2BigIPPAYG}\n", { "EC2BigIPPAYG": {"Ref" : "EC2BigIPPAYG" }} ]},
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_2_bigip-ingress_rbac.yaml\n",
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_3_bigip-ingress_Deployment.yaml\n",
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_4_bigip-ingress_Ingress.yaml\n"
@@ -1020,6 +1033,7 @@
                                 "\n## Install required applications\n",
                                 { "Fn::Sub": [ "export STACK_ID=${stackID}\n", { "stackID": {"Ref": "AWS::StackId"} }]},
                                 { "Fn::Sub": [ "export Region=${region}\n", { "region": {"Ref": "AWS::Region"} }]},
+                                "echo cfn-init isntalling and configuring scripts\n",
                                 "/opt/aws/apitools/cfn-init/bin/cfn-init -v \\\n",
                                 "\t--configsets InstallAndConfigure \\\n",
                                 "\t--stack ${STACK_ID} \\\n",
@@ -1158,6 +1172,7 @@
                                             "tmsh modify auth password-policy policy-enforcement disabled\n",
                                             "tmsh modify auth user admin password ${Instance_ID}\n",
                                             "tmsh create auth user BigIPk8s partition-access add { all-partitions { role admin }} password ${Instance_ID}\n",
+                                            "tmsh create auth partition nginx\n",
                                             "tmsh save /sys config\n",
                                             "date\n",
                                             "echo 'provisioning required modules'\n",
