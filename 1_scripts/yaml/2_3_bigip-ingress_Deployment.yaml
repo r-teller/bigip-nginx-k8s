@@ -42,7 +42,7 @@ spec:
             "--bigip-password=$(BIGIP_PASSWORD)",
             "--bigip-url=https://10.10.3.51",
             "--bigip-partition=nginx",
-            "--pool-member-type=nodeport",
+            "--pool-member-type=cluster",
             "--insecure=true"
             ]
       imagePullSecrets:

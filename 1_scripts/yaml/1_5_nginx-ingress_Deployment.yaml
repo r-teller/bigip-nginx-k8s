@@ -1,9 +1,10 @@
-apiVersion: extensions/v1beta1
-kind: DaemonSet
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: nginx-ingress-a
+  name: nginx-ingress-controller-a
   namespace: nginx-ingress
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: nginx-ingress-controller-a
@@ -22,6 +23,8 @@ spec:
           containerPort: 80
         - name: https
           containerPort: 443
+        - name: stub_status
+          containerPort: 8080
         env:
         - name: POD_NAMESPACE
           valueFrom:

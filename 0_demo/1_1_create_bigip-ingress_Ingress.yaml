@@ -1,13 +1,23 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: bigip-ingress
+  name: bigip-ingress-controller-a
   namespace: nginx-ingress
   annotations:
   # See the k8s-bigip-ctlr documentation for information about
   # all Ingress Annotations
   # https://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/latest/#supported-ingress-annotations
     virtual-server.f5.com/partition: "nginx"
+    virtual-server.f5.com/health: |
+      [
+        {
+          "path":       "nginx-ingress-controller-a/",
+          "send":       "GET /nginx-health\\r\\n\\r\\n",
+          "recv":       "healthy",
+          "interval":   5,
+          "timeout":    16
+        }
+      ]
 spec:
   backend:
     # The name of the Service you want to expose to external traffic

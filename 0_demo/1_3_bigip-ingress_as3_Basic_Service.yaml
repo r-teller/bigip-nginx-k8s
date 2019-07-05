@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: f5-as3-basic-service
+  namespace: nginx-ingress
+  labels:
+    app: f5-as3-basic-svc
+    cis.f5.com/as3-tenant: as3_tenant
+    cis.f5.com/as3-app: as3_basic_app
+    cis.f5.com/as3-pool: as3_basic_pool
+spec:
+  ports:
+  - name: f5-as3-basic-svc
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  type: NodePort
+  selector:
+    app: nginx-ingress-controller-b

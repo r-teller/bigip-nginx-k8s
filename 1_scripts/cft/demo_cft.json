@@ -1224,11 +1224,20 @@
                                 "group":  "root",
                                 "mode":  "000755",
                                 "owner":  "root"
+                            },
+                            "/tmp/f5-appsvcs.oarch.rpm":{
+                                "group":  "root",
+                                "mode":  "000755",
+                                "owner":  "root",
+                                "source": "https://raw.githubusercontent.com/F5Networks/f5-appsvcs-extension/master/dist/latest/f5-appsvcs-3.12.0-5.noarch.rpm"
                             }
                         },
                         "commands": {
-                            "b-configure-Bigip": {
-                                "command":  "/tmp/firstrun.sh\n "
+                            "01-configure-Bigip": {
+                                "command":  "/tmp/firstrun.sh\n"
+                            },
+                            "02-install-appsvcs": {
+                                "command": "tmsh create mgmt shared iapp package-management-tasks operation INSTALL packageFilePath /tmp/f5-appsvcs.oarch.rpm\n"
                             }
                         }
                     }
@@ -1377,6 +1386,10 @@
                 "Ref": "VPC"
             }
         },
+        "VPC_Link": {
+            "Description": "Shortcut to all EC2 instances for this VPC",
+            "Value": { "Fn::Sub": [ "https://${region}.console.aws.amazon.com/ec2/v2/home?region=${region}#Instances:${vpc};sort=desc:launchTime", { "region": {"Ref": "AWS::Region"},"vpc":{"Ref": "VPC" }}]}
+        },
         "BIGIP": {
             "Condition": "False",
             "Description": "BIGIP Mgmt Address",
@@ -1392,9 +1405,8 @@
                 }
         },
         "JumpHost": {
-            "Condition": "False",
-            "Description": "Jump Host FQDN",
-            "Value": { "Fn::GetAtt" : [ "EC2JumpHost" , "PublicDnsName" ] }
+            "Description": "SSH to JumpHost",
+            "Value": { "Fn::Sub": [ "ec2-user@${PublicDnsName}", {"PublicDnsName": { "Fn::GetAtt" : [ "EC2JumpHostV2" , "PublicDnsName" ] }}]}
         },
         "DeleteSyntax": {
             "Description": "Use this command on the JumpHost to deprovision your stack",

@@ -1,0 +1,36 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  # name of the resource to create on the BIG-IP
+  name: http.pool_only
+  namespace: nginx-ingress
+  labels:
+    f5type: virtual-server
+data:
+  # See the f5-schema table for schema-controller compatibility
+  # https://clouddocs.f5.com/containers/latest/releases_and_versioning.html#f5-schema
+  schema: "f5schemadb://bigip-virtual-server_v0.1.7.json"
+  data: |
+    {
+      "virtualServer": {
+        "backend": {
+          "servicePort": 80,
+          "serviceName": "nginx-ingress-controller-b",
+          "healthMonitors": [{
+            "interval": 30,
+            "protocol": "http",
+            "send": "GET HTTP/1.1/\r\n",
+            "recv": "200|OK",
+            "timeout": 120
+          }]
+        },
+        "frontend": {
+          "virtualAddress": {
+            "port": 80
+          },
+          "partition": "nginx",
+          "balance": "ratio-member",
+          "mode": "http"
+        }
+      }
+    }
