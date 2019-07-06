@@ -24,7 +24,7 @@ data:
                     "basic_app": {
                         "class": "Service_HTTP",
                         "virtualAddresses": [
-                            "10.192.75.101"
+                            "10.10.2.70"
                         ],
                         "remark":"ingress: basic-demo",
                         "virtualPort": 80,
@@ -49,10 +49,10 @@ data:
                     "seucirty_app": {
                         "class": "Service_HTTP",
                         "virtualAddresses": [
-                            "10.192.75.102"
+                            "10.10.2.70"
                         ],
                         "remark":"ingress: waf-demo",
-                        "virtualPort": 80,
+                        "virtualPort": 8080,
                         "pool": "as3_seucirty_pool",
                         "securityLogProfiles": [
                             {
@@ -61,7 +61,7 @@ data:
                         ],
                         "policyWAF": {
                             "use": "OWASPAutoTune"
-                        }                          
+                        }
                     },
                     "as3_seucirty_pool": {
                         "class": "Pool",

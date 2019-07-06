@@ -24,7 +24,7 @@ data:
                     "basic_app": {
                         "class": "Service_HTTP",
                         "virtualAddresses": [
-                            "10.192.75.101"
+                            "10.10.2.70"
                         ],
                         "remark":"ingress: as3-basic-demo",
                         "virtualPort": 80,
