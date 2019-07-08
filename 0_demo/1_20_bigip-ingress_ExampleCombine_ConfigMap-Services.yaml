@@ -78,7 +78,8 @@ data:
                         "members": [
                             {
                                 "servicePort": 8080,
-                                "serverAddresses": []
+                                "serverAddresses": [],
+                                "shareNodes": true
                             }
                         ]
                     }
@@ -114,7 +115,7 @@ data:
                         "class": "Service_HTTP",
                         "virtualAddresses": [
                             "10.192.75.102"
-                        ],
+                       ],
                         "remark":"ingress: security-demo",
                         "virtualPort": 80,
                         "pool": "as3_security_pool"
@@ -127,7 +128,8 @@ data:
                         "members": [
                             {
                                 "servicePort": 8080,
-                                "serverAddresses": []
+                                "serverAddresses": [],
+                                "shareNodes": true
                             }
                         ]
                     }

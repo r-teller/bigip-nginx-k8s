@@ -1,7 +1,7 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: f5-as3-seucirty-cm
+  name: f5-as3-configmap
   namespace: nginx-ingress
   labels:
     f5type: virtual-server
@@ -43,7 +43,7 @@ data:
                         ]
                     }
                 },
-                "as3_seucirty_app": {
+                "as3_security_app": {
                     "class": "Application",
                     "template": "generic",
                     "seucirty_app": {
@@ -53,7 +53,7 @@ data:
                         ],
                         "remark":"ingress: waf-demo",
                         "virtualPort": 8080,
-                        "pool": "as3_seucirty_pool",
+                        "pool": "as3_security_pool",
                         "securityLogProfiles": [
                             {
                                 "bigip": "/Common/Log all requests"
@@ -63,7 +63,7 @@ data:
                             "use": "OWASPAutoTune"
                         }
                     },
-                    "as3_seucirty_pool": {
+                    "as3_security_pool": {
                         "class": "Pool",
                         "monitors": [
                             "http"
