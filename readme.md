@@ -1,25 +1,22 @@
 # Useful Links
-Deploying K8s in AWS with KOPS
-* https://github.com/kubernetes/kops/blob/master/docs/aws.md
-
-K8s cheat sheet
-* https://kubernetes.io/docs/reference/kubectl/cheatsheet/
-
-NGINX Ingress Controller: Install steps
-* https://github.com/nginxinc/kubernetes-ingress/blob/master/docs/installation.md
-
-NGINX Ingress Controller: Complete Example
-* https://github.com/nginxinc/kubernetes-ingress/tree/master/examples/complete-example
-
-F5 BIG-IP Controller: Kubernetes
-* https://clouddocs.f5.com/containers/v2/kubernetes/kctlr-app-install.html
-
-F5 Application Services 3
-* https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension/latest/
-
+* Deploying K8s in AWS with KOPS
+    * https://github.com/kubernetes/kops/blob/master/docs/aws.md
+* K8s cheat sheet
+    * https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+* NGINX Ingress Controller: Install steps
+    * https://github.com/nginxinc/kubernetes-ingress/blob/master/docs/installation.md
+* NGINX Ingress Controller: Complete Example
+    * https://github.com/nginxinc/kubernetes-ingress/tree/master/examples/complete-example
+* F5 BIG-IP Controller: Kubernetes
+    * https://clouddocs.f5.com/containers/v2/kubernetes/kctlr-app-install.html
+* F5 Application Services 3
+    * https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension/latest/
 
 # Overview
 This demo was put in place to simplify the process of deploying F5 BIG-IP & NGINX-Ingress Controller running inside of Kubernetes.
+
+## AWS
+![alt text](/2_images/Env_VPC.png)
 
 When the CFT is deployed it will create everything needed to complete the demo in AWS.
 - AWS Deployment Artifacts
@@ -32,16 +29,71 @@ When the CFT is deployed it will create everything needed to complete the demo i
         - This subnet is used to prevent resources from being directly exposed to the internet
     - Internet_Gateway - provides internet connectivity for resources in Public_Subnet_A/B
     - NAT_Gateway - provides internet connectivity for resources in Private_Subnet_A
-    - Elastic_IPs - are created for the following resources
+    - EC2 Instances
+        - JumpHost - T3.Medium AMI built from CentOs, cloudinit is used to install all software dependencies and deploy K8s
+        - Big-IP - T2.Large AMI, cloudinit is used to establish initial configuration
+    - Elastic_IPs - are allocated for the following resources
         - BIG-IP Mgmt interface
         - BIG-IP VirtualServer Deployment Example A
         - BIG-IP VirtualServer Deployment Example B
         - Jump_Host
         - NAT Gateway
+    - Elastic Network Adapters
+        - JumpHost Mgmt Interface (Eth0)
+            - Primary Address: 10.10.1.10
+                - Maps to allocated EIP
+            - Security Group:
+                - Allow SSH from 0.0.0.0/0
+        - Big-IP Mgmt Interface (Eth0)
+            - Primary Address: 10.10.1.50
+                - Maps to allocated EIP
+            - Security Group:
+                - Allow SSH from 0.0.0.0/0
+                - Allow HTTPS from 0.0.0.0/0
+        - Big-IP Public Interface (Eth1)
+            - Security Group:
+                - Allow TCP/80,443,8080,8443 from 0.0.0.0/0
+            - Primary Address: 10.10.2.50
+            - Secondary Address: 10.10.2.51
+            - Secondary Address: 10.10.2.52
+            - Secondary Address: 10.10.2.60
+                - Maps to allocated EIP
+            - Secondary Address: 10.10.2.70
+                - Maps to allocated EIP
+        - Big-IP Private Interface (Eth2)
+            - Security Group:
+                - Allow all traffic from 10.10.0.0/16
+            - Primary Address: 10.10.3.50
+            - Secondary Address: 10.10.3.51
+            - Secondary Address: 10.10.3.52
 
-![alt text](/2_images/Env_VPC.png)
+## Kubernetes
+After the jump host finishes initializing cloudinit provision two additional EC2 instances (T3.Medium) using KOPs. These instances are deployed in the Private_Subnet and use AutoScale groups to manage scale. Configuration is stored in S3
 
-## Notes -
+- Useful KOPs commands
+    - kops get cluster --name ${KOPS_NAME} -o yaml
+        - output the current configuration of your K8s cluster in YAML
+    - kops get ig --name ${KOPS_NAME}
+        - returns current autoscale configuration for your K8s cluster
+- Useful K8s commands
+    - kubectl get nodes
+        - returns all nodes for your K8s cluster
+    - kubectl get namespace
+        - returns all namespaces, you will notice that nginx-ingress and bigip-ingress were already created during platform standup
+    - kubectl get pods -n bigip-ingress
+        - returns all pods in the bigip-ingress namespace, you should see the k8s-bigip-ctlr already running and connected to your Big-IP
+    - kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/2_1_deploy_demo-app-v1_Deployment.yaml
+        - applys the yaml spec specified in the referenced file, this example would create the pods for demo-app-v1
+
+## Deprovisioning Notes
+If resources are deleted in the incorrect order it is possible to leave orphaned objects in your AWS environment that could make deletion of the CFT challenging. To deprovisioning your demo environment run the following command on the JumpHost
+```bash
+/tmp/deprovision_stack.sh
+```
+
+
+-----------------> Ignore below this line
+
 ### Scaling KOPS worker nodes from 1 to 2
 ```bash
     kops get ig nodes -o json | jq '.spec.minSize=1|.spec.maxSize=1' | kops replace -f /dev/stdin

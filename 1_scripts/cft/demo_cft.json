@@ -369,6 +369,63 @@
                 }
             }
         },
+        "SecurityGroupDemoApp": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "6",
+                        "FromPort" : 80,
+                        "ToPort" : 80,
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "Allow TCP 80"
+                    }, {
+                        "IpProtocol": "6",
+                        "FromPort" : 443,
+                        "ToPort" : 443,
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "Allow TCP 443"
+                    }, {
+                        "IpProtocol": "6",
+                        "FromPort" : 8443,
+                        "ToPort" : 8443,
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "Allow TCP 8443"
+                    }, {
+                        "IpProtocol": "6",
+                        "FromPort" : 8080,
+                        "ToPort" : 8080,
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "Allow TCP 8080"
+                    }
+                ],
+                "GroupDescription": "Allowed TCP Ports for Demo App",
+                "VpcId": {
+                  "Ref": "VPC"
+              },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "SG",
+                                    "DemoApp"
+                                ]
+                            ]
+                        }
+                    },
+                    {
+                        "Key": "Environment",
+                        "Value": "bigip-k8s-nginx"
+                    }
+                ]
+            }
+        },
         "SecurityGroupSSH": {
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
@@ -594,7 +651,7 @@
                 "Description": "External Interface for BigIP",
                 "GroupSet": [
                     {
-                        "Ref": "SSHSecurityGroup"
+                        "Ref": "SecurityGroupDemoApp"
                     }
                 ],
                 "PrivateIpAddresses": [
