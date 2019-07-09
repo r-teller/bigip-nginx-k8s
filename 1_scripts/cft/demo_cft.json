@@ -4,21 +4,12 @@
         "AWS::CloudFormation::Interface" : {
             "ParameterGroups" : [
                 {
-                "Parameters" : ["EnvironmentName","BIGIPType","ExistingKeyPairName" ]
+                "Parameters" : ["EnvironmentName","ExistingKeyPairName" ]
                 }
             ]
         }
     },
     "Parameters": {
-        "BIGIPType": {
-            "Type": "String",
-            "Description": "PAYG requires acceptance of terms and subscription. https://aws.amazon.com/marketplace/server/procurement?productId=0d09bfd3-90c5-4b9c-98a2-c3860dbfcd9e",
-            "Default": "Pay-As-You-Go",
-            "AllowedValues": [
-              "Pay-As-You-Go",
-              "Bring-Your-Own-License"
-            ]
-        },
         "EnvironmentName":{
             "Description": "Name for your environment",
             "AllowedPattern": "[a-zA-Z]+$",
@@ -29,21 +20,9 @@
           "Type": "AWS::EC2::KeyPair::KeyName",
           "AllowedPattern": "[a-zA-Z0-9-_~!@#$%^&*()\\+]+$",
           "ConstraintDescription": "You must select an existing EC2 key pair.",
-          "Default": "Teller"
-        },
-        "Working": {
-            "Type": "String",
-            "Description": "Deploy everything needed for demo",
-            "Default": "False",
-            "AllowedValues": [
-              "True",
-              "False"
-            ]
         }
     },
-    "Conditions": {
-        "False": {"Fn::Equals": [{"Ref": "BIGIPType"}, "True"]}
-    },
+    "Conditions": {},
     "Resources": {
         "VPC": {
             "Type": "AWS::EC2::VPC",
@@ -686,108 +665,6 @@
                 ]
             }
         },
-        "EC2JumpHost": {
-            "Condition": "False",
-            "Type" : "AWS::EC2::Instance",
-            "Properties": {
-                "KeyName": {
-                  "Ref": "ExistingKeyPairName"
-                },
-                "IamInstanceProfile" : {"Ref" : "InstanceProfile"},
-                "NetworkInterfaces": [
-                     {
-                        "Description": "Public Interface",
-                        "DeviceIndex": "0",
-                        "NetworkInterfaceId":
-                        {
-                            "Ref": "ENAPublicJumpHost01"
-                        }
-                    }
-                ],
-                "InstanceType": "t3.medium",
-                "ImageId": {
-                  "Fn::FindInMap": [
-                    "Ubuntu1804",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    "AMI"
-                  ]
-                },
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": {
-                            "Fn::Join": [
-                                "-",
-                                [
-                                    {
-                                        "Ref": "AWS::StackName"
-                                    },
-                                    "JumpHost"
-                                ]
-                            ]
-                        }
-                    },
-                    {
-                        "Key": "Environment",
-                        "Value": "bigip-k8s-nginx"
-                    }
-                ],
-                "UserData": {
-                    "Fn::Base64": {
-                        "Fn::Join": [
-                            "",
-                            [
-                                "#!/bin/bash\n",
-                                "\n## Install required applications\n",
-                                "sudo apt-get update\n",
-                                "sudo apt-get install jq -y\n",
-                                "sudo apt-get install awscli -y\n",
-                                "\n### Install kops\n",
-                                "curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | jq -r .tag_name )/kops-linux-amd64\n",
-                                "\n### Install kubectl\n",
-                                "curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl\n",
-                                "\n### Move kubectl and kops binary\n",
-                                "chmod +x ./kubectl ./kops\n",
-                                "sudo mv ./kubectl ./kops /usr/local/bin/\n",
-                                "\n### Start configuration based on environment\n",
-                                { "Fn::Sub": [ "export KOPS_NAME=${StackName}.k8s.local\n", { "StackName": {"Ref" : "AWS::StackName" }} ]},
-                                "echo export KOPS_NAME=$KOPS_NAME >> /etc/profile.d/88-all-profiles.sh\n",
-                                { "Fn::Sub": [ "export KOPS_STATE_STORE=s3://${BucketName}\n", { "BucketName": {"Ref": "S3BucketKOPS"} }]},
-                                "echo export KOPS_STATE_STORE=$KOPS_STATE_STORE >> /etc/profile.d/88-all-profiles.sh\n",
-                                { "Fn::Sub": [ "export KOPS_VPC_ID=${vpcID}\n", { "vpcID": {"Ref": "VPC"} }]},
-                                { "Fn::Sub": [ "export KOPS_SUBNET_ID=${SubnetID}\n", { "SubnetID": {"Ref": "PrivateSubnet01AzA"} }]},
-                                { "Fn::Sub": [ "export KOPS_AVAIL_ZONES=${AZ}\n", { "AZ": {"Fn::GetAtt" : [ "PrivateSubnet01AzA" , "AvailabilityZone" ]} }]},
-                                { "Fn::Sub": [ "export KOPS_SECURITY_GROUP=${SG}\n", {"SG": {"Ref" : "SecurityGroupPrivate"} }]},
-                                "sudo -u ubuntu mkdir /home/ubuntu/bigip-nginx-k8s\n",
-                                "sudo -u ubuntu git clone https://github.com/r-teller/bigip-nginx-k8s.git /home/ubuntu/bigip-nginx-k8s\n",
-                                "sudo -u ubuntu kops create cluster \\\n",
-                                    "\t--state=${KOPS_STATE_STORE} \\\n",
-                                    "\t--cloud=aws \\\n",
-                                    "\t--vpc=${KOPS_VPC_ID} \\\n",
-                                    "\t--master-zones=${KOPS_AVAIL_ZONES} \\\n",
-                                    "\t--master-security-groups=${KOPS_SECURITY_GROUP} \\\n",
-                                    "\t--zones=${KOPS_AVAIL_ZONES} \\\n",
-                                    "\t--subnets=${KOPS_SUBNET_ID} \\\n",
-                                    "\t--utility-subnets=${KOPS_SUBNET_ID} \\\n",
-                                    "\t--node-count=1 \\\n",
-                                    "\t--topology=private \\\n",
-                                    "\t--api-loadbalancer-type=internal \\\n",
-                                    "\t--networking=kopeio-vxlan \\\n",
-                                    "\t--node-size=t3.medium \\\n",
-                                    "\t--node-security-groups=${KOPS_SECURITY_GROUP} \\\n",
-                                    "\t--master-size=t3.medium \\\n",
-                                    "\t--ssh-public-key=/home/ubuntu/.ssh/authorized_keys \\",
-                                    "\t--name=${KOPS_NAME} --yes\n\n",
-                                "\n### Store BIG-IP Creds as k8s secret\n",
-                                { "Fn::Sub": [ "kubectl create secret generic bigip-login --namespace bigip-ingress --from-literal=username=BigIPk8s --from-literal=password=${BigIPk8s_PWD}\n", { "BigIPk8s_PWD": {"Ref": "EC2BigIPPAYG"} }]}
-                            ]
-                        ]
-                    }
-                }
-            }
-        },
         "EC2JumpHostV2": {
             "Type" : "AWS::EC2::Instance",
             "Metadata" : {
@@ -1391,7 +1268,6 @@
             "Value": { "Fn::Sub": [ "https://${region}.console.aws.amazon.com/ec2/v2/home?region=${region}#Instances:${vpc};sort=desc:launchTime", { "region": {"Ref": "AWS::Region"},"vpc":{"Ref": "VPC" }}]}
         },
         "BIGIP": {
-            "Condition": "False",
             "Description": "BIGIP Mgmt Address",
             "Value":
                 {

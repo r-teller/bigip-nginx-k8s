@@ -1,18 +1,45 @@
 # Useful Links
-Deploying k8s in AWS
+Deploying K8s in AWS with KOPS
 * https://github.com/kubernetes/kops/blob/master/docs/aws.md
 
-k8s cheat sheet
+K8s cheat sheet
 * https://kubernetes.io/docs/reference/kubectl/cheatsheet/
 
-install nginx-ingress controller
+NGINX Ingress Controller: Install steps
 * https://github.com/nginxinc/kubernetes-ingress/blob/master/docs/installation.md
 
-nginx example app
+NGINX Ingress Controller: Complete Example
 * https://github.com/nginxinc/kubernetes-ingress/tree/master/examples/complete-example
 
-f5 & k8s ingress controller
+F5 BIG-IP Controller: Kubernetes
 * https://clouddocs.f5.com/containers/v2/kubernetes/kctlr-app-install.html
+
+F5 Application Services 3
+* https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension/latest/
+
+
+# Overview
+This demo was put in place to simplify the process of deploying F5 BIG-IP & NGINX-Ingress Controller running inside of Kubernetes.
+
+When the CFT is deployed it will create everything needed to complete the demo in AWS.
+- AWS Deployment Artifacts
+    - VPC with CIDR set to 10.10.0.0/16
+    - Public_Subnet_A (10.10.1.0/24)
+        - This subnet is used for Mgmt interfaces of devices deployed in the VPC
+    - Public_Subnet_B (10.10.2.0/24)
+        - This subnet is used to expose resources in the Private subnet to the internet
+    - Private_Subnet_A (10.10.3.0/24)
+        - This subnet is used to prevent resources from being directly exposed to the internet
+    - Internet_Gateway - provides internet connectivity for resources in Public_Subnet_A/B
+    - NAT_Gateway - provides internet connectivity for resources in Private_Subnet_A
+    - Elastic_IPs - are created for the following resources
+        - BIG-IP Mgmt interface
+        - BIG-IP VirtualServer Deployment Example A
+        - BIG-IP VirtualServer Deployment Example B
+        - Jump_Host
+        - NAT Gateway
+
+![alt text](/2_images/Env_VPC.png)
 
 ## Notes -
 ### Scaling KOPS worker nodes from 1 to 2
