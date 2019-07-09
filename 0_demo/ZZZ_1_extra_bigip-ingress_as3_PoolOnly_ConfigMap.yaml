@@ -17,11 +17,11 @@ data:
           "servicePort": 80,
           "serviceName": "nginx-ingress-controller-b",
           "healthMonitors": [{
-            "interval": 30,
+            "interval": 5,
             "protocol": "http",
-            "send": "GET HTTP/1.1/\r\n",
-            "recv": "200|OK",
-            "timeout": 120
+            "send": "GET /nginx-health\\r\\n\\r\\n",
+            "recv": "healthy",
+            "timeout": 16
           }]
         },
         "frontend": {

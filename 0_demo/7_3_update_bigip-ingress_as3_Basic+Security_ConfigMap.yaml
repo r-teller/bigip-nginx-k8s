@@ -33,7 +33,7 @@ data:
                     "as3_basic_pool": {
                         "class": "Pool",
                         "monitors": [
-                            "http"
+                            {"use": "http_nginxIngress_monitor"}
                         ],
                         "members": [
                             {
@@ -41,6 +41,15 @@ data:
                                 "serverAddresses": []
                             }
                         ]
+                    },
+                    "http_nginxIngress_monitor": {
+                        "class": "Monitor",
+                        "monitorType": "http",
+                        "interval": 5,
+                        "protocol": "http",
+                        "send": "GET /nginx-health\\r\\n\\r\\n",
+                        "receive": "healthy",
+                        "timeout": 16
                     }
                 },
                 "as3_security_app": {
@@ -66,7 +75,7 @@ data:
                     "as3_security_pool": {
                         "class": "Pool",
                         "monitors": [
-                            "http"
+                            {"use": "http_nginxIngress_monitor"}
                         ],
                         "members": [
                             {
@@ -74,6 +83,15 @@ data:
                                 "serverAddresses": []
                             }
                         ]
+                    },
+                    "http_nginxIngress_monitor": {
+                        "class": "Monitor",
+                        "monitorType": "http",
+                        "interval": 5,
+                        "protocol": "http",
+                        "send": "GET /nginx-health\\r\\n\\r\\n",
+                        "receive": "healthy",
+                        "timeout": 16
                     },
                     "OWASPAutoTune": {
                         "class": "WAF_Policy",
