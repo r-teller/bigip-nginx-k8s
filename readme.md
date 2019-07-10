@@ -12,11 +12,13 @@
 * F5 Application Services 3
     * https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension/latest/
 
+# Demo Steps
+For demo information see --> [Demo Steps]: /0_demo/0_0_Demo_Steps.md
 # Overview
 This demo was put in place to simplify the process of deploying F5 BIG-IP & NGINX-Ingress Controller running inside of Kubernetes.
 
 ## AWS
-![alt text](/2_images/Env_VPC.png)
+![Example VPC Architecture](/2_images/Env_VPC.png)
 
 When the CFT is deployed it will create everything needed to complete the demo in AWS.
 - AWS Deployment Artifacts
@@ -83,14 +85,24 @@ After the jump host finishes initializing cloudinit provision two additional EC2
     - kubectl get pods -n bigip-ingress
         - returns all pods in the bigip-ingress namespace, you should see the k8s-bigip-ctlr already running and connected to your Big-IP
     - kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/2_1_deploy_demo-app-v1_Deployment.yaml
-        - applys the yaml spec specified in the referenced file, this example would create the pods for demo-app-v1
+        - applies the yaml spec specified in the referenced file, this example would create the pods for demo-app-v1
 
 ## Deprovisioning Notes
-If resources are deleted in the incorrect order it is possible to leave orphaned objects in your AWS environment that could make deletion of the CFT challenging. To deprovisioning your demo environment run the following command on the JumpHost
+It is important to delete the demo environment correctly using the deprovision script provided on the JumpHost. If resources are deleted in the incorrect order it is possible to leave orphaned objects in your AWS environment that could make deletion of the CFT challenging.
+
+To deprovisioning your demo environment run the following command on the JumpHost
 ```bash
 /tmp/deprovision_stack.sh
 ```
 
+The deprovision script deletes the K8s environment and cleans up all artifacts associated to it and then deletes the CloudFormation Stack.
+
+## Things to do
+1 Add support for Bring Your Own Environment
+2 Add support for infrastructure only deployments
+3 Add support for Bring Your Own Licensed Big-IP
+
+##
 
 -----------------> Ignore below this line
 
