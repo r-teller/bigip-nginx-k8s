@@ -13,7 +13,7 @@
     * https://clouddocs.f5.com/products/extensions/f5-appsvcs-extension/latest/
 
 # Demo Steps
-For demo information see --> [Demo Steps]: /0_demo/0_0_Demo_Steps.md
+For demo information see --> [Demo Steps](/0_demo/readme.md)
 # Overview
 This demo was put in place to simplify the process of deploying F5 BIG-IP & NGINX-Ingress Controller running inside of Kubernetes.
 
