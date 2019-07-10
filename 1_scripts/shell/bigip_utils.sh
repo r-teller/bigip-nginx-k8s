@@ -103,3 +103,14 @@ function LicenseBigIP {
     done
 
 }
+
+
+function checkForAs3RPM {
+    sleep 10
+    STATUS=`[ -f /tmp/f5-appsvcs.oarch.rpm ] && echo true || echo false`
+    while [[ ${STATUS}x != 'true'x ]]; do
+        echo -n '.'
+        sleep 5
+        STATUS=`[ -f /tmp/f5-appsvcs.oarch.rpm ] && echo true || echo false`
+    done
+}

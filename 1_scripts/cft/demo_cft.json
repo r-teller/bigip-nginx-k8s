@@ -12,7 +12,7 @@
     "Parameters": {
         "EnvironmentName":{
             "Description": "Name for your environment",
-            "AllowedPattern": "[a-zA-Z]+$",
+            "AllowedPattern": "[a-z]+$",
             "Type": "String"
         },
         "ExistingKeyPairName": {
@@ -38,7 +38,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "VPC"
                                 ]
@@ -60,7 +60,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "IGW"
                                 ]
@@ -121,7 +121,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "NGW"
                                 ]
@@ -157,7 +157,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "PublicRouteTable"
                                 ]
@@ -204,7 +204,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "PublicSubnet01-AZ-A"
                                 ]
@@ -238,7 +238,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "PublicSubnet02-AZ-A"
                                 ]
@@ -272,7 +272,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "PrivateSubnet01-AZ-A"
                                 ]
@@ -318,7 +318,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "PrivateRouteTable"
                                 ]
@@ -411,7 +411,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "SG",
                                     "DemoApp"
@@ -449,7 +449,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "SG",
                                     "SSH"
@@ -487,7 +487,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "SG",
                                     "HTTPs"
@@ -523,7 +523,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "SG",
                                     "Private"
@@ -560,45 +560,10 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "JumpHost",
                                     "PublicENA",
-                                    "01"
-                                ]
-                            ]
-                        }
-                    }
-                ]
-            }
-        },
-        "ENAPrivateJumpHost01":{
-            "Condition": "False",
-            "Type": "AWS::EC2::NetworkInterface",
-            "Properties": {
-                "SourceDestCheck": false,
-                "Description": "Private Interface for Jump Host",
-                "GroupSet": [
-                    {
-                        "Ref": "SSHSecurityGroup"
-                    }
-                ],
-                "PrivateIpAddress": "10.10.3.10",
-                "SubnetId": {
-                    "Ref": "PrivateSubnet01AzA"
-                },
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": {
-                            "Fn::Join": [
-                                "-",
-                                [
-                                    {
-                                        "Ref": "AWS::StackName"
-                                    },
-                                    "JumpHost",
-                                    "PrivateENA",
                                     "01"
                                 ]
                             ]
@@ -632,7 +597,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "BigIP",
                                     "PublicENA",
@@ -672,7 +637,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "BigIP",
                                     "PublicENA",
@@ -710,7 +675,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "BigIP",
                                     "PrivateENA",
@@ -881,10 +846,9 @@
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_2_nginx-ingress_rbac.yaml\n",
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_3_nginx-ingress_CustomResourceDefinition.yaml\n",
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_4_nginx-ingress_DefaultSecrets.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_5_nginx-ingress_DaemonSet_A.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_6_nginx-ingress_Service_A.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_5_nginx-ingress_DaemonSet_B.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_6_nginx-ingress_Service_B.yaml\n",
+                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_5_nginx-ingress_Deployment.yaml\n",
+                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_6_nginx-ingress_Service.yaml\n",
+                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_7_nginx-ingress_DaemonSet.yaml\n",
                                             "date\n",
                                             "echo 'provisioning bigip-ingress'\n",
                                             "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_1_bigip-ingress_ns.yaml\n",
@@ -948,7 +912,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "JumpHost"
                                 ]
@@ -991,7 +955,7 @@
                         "-",
                         [
                             {
-                                "Ref": "AWS::StackName"
+                                "Ref": "EnvironmentName"
                             },
                             "kops-state"
                         ]
@@ -1015,7 +979,7 @@
                         "-",
                         [
                             {
-                                "Ref": "AWS::StackName"
+                                "Ref": "EnvironmentName"
                             },
                             "kops-iam-role"
                         ]
@@ -1089,7 +1053,7 @@
                                         "",
                                         [
                                             "#!/bin/bash\n",
-                                            ". /tmp/firstrun.utils\n",
+                                            ". /tmp/bigip_utils.sh\n",
                                             "FILE=/tmp/firstrun.log\n",
                                             "if [ ! -e $FILE ]\n",
                                             " then\n",
@@ -1150,6 +1114,9 @@
                                                     "Fn::Select" : [2, {"Fn::GetAtt" : [ "ENAPublicBigIP02" , "SecondaryPrivateIpAddresses" ]}]
                                                     } }]},
                                             "date\n",
+                                            "echo 'Installing AS3 iAppLX'",
+                                            "checkForAs3RPM\n",
+                                            "tmsh create mgmt shared iapp package-management-tasks operation INSTALL packageFilePath /tmp/f5-appsvcs.oarch.rpm\n",
                                             "# typically want to remove firstrun.config after first boot\n",
                                             "# rm /tmp/firstrun.config\n"
                                         ]
@@ -1210,7 +1177,7 @@
                                 "-",
                                 [
                                     {
-                                        "Ref": "AWS::StackName"
+                                        "Ref": "EnvironmentName"
                                     },
                                     "BigIP"
                                 ]
@@ -1320,11 +1287,11 @@
                 "Ref": "VPC"
             }
         },
-        "VPC_Link": {
+        "Ec2VpcLink": {
             "Description": "Shortcut to all EC2 instances for this VPC",
-            "Value": { "Fn::Sub": [ "https://${region}.console.aws.amazon.com/ec2/v2/home?region=${region}#Instances:${vpc};sort=desc:launchTime", { "region": {"Ref": "AWS::Region"},"vpc":{"Ref": "VPC" }}]}
+            "Value": { "Fn::Sub": [ "https://${region}.console.aws.amazon.com/ec2/v2/home?region=${region}#Instances:vpcId=${vpc};sort=desc:launchTime", { "region": {"Ref": "AWS::Region"},"vpc":{"Ref": "VPC" }}]}
         },
-        "BIGIP": {
+        "BigIPhttps": {
             "Description": "BIGIP Mgmt Address",
             "Value":
                 {
@@ -1332,6 +1299,19 @@
                         "",
                         [
                             "https://",
+                            { "Fn::GetAtt" : [ "EC2BigIPPAYG" , "PublicDnsName" ] }
+                        ]
+                    ]
+                }
+        },
+        "BigIPssh": {
+            "Description": "BIGIP Mgmt Address",
+            "Value":
+                {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "admin@",
                             { "Fn::GetAtt" : [ "EC2BigIPPAYG" , "PublicDnsName" ] }
                         ]
                     ]

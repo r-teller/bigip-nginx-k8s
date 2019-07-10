@@ -23,7 +23,7 @@ spec:
           containerPort: 80
         - name: https
           containerPort: 443
-        - name: stub_status
+        - name: stubstatus
           containerPort: 8080
         env:
         - name: POD_NAMESPACE
