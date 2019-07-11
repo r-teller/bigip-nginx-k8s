@@ -547,7 +547,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ```
 
 ## 6) Scale nginx-ingress-controllers
-1. (From JumpHost) Using /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh modify KOPs worker node from 1 to 3
+6.1. (From JumpHost) Using /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh modify KOPs worker node from 1 to 3
     * cat /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
     * sudo chwon ec2-user:ec2-user /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
     * chmod +x /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
