@@ -1139,6 +1139,7 @@
                                             "echo 'Installing AS3 iAppLX'",
                                             "checkForAs3RPM\n",
                                             "tmsh create mgmt shared iapp package-management-tasks operation INSTALL packageFilePath /tmp/f5-appsvcs.oarch.rpm\n",
+                                            "echo 'Configuration of this device has completed\n'",
                                             "# typically want to remove firstrun.config after first boot\n",
                                             "# rm /tmp/firstrun.config\n"
                                         ]
