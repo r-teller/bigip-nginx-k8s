@@ -19,7 +19,7 @@
           "Description": "Select an existing EC2 key pair to enable SSH access to the instance.",
           "Type": "AWS::EC2::KeyPair::KeyName",
           "AllowedPattern": "[a-zA-Z0-9-_~!@#$%^&*()\\+]+$",
-          "ConstraintDescription": "You must select an existing EC2 key pair.",
+          "ConstraintDescription": "You must select an existing EC2 key pair."
         }
     },
     "Conditions": {},
@@ -770,7 +770,7 @@
                                                 "\t--ssh-public-key=/home/ec2-user/.ssh/authorized_keys \\\n",
                                                 "\t--name=${KOPS_NAME}\n\n",
                                             "kops get cluster --name $KOPS_NAME -o json | jq '.spec.nonMasqueradeCIDR=\"10.10.32.0/20\"' | kops replace -f /dev/stdin\n",
-                                            "kops update cluster --yes\n"
+                                            "kops update cluster --name $KOPS_NAME --yes\n"
                                         ]
                                     ]
                                 }
@@ -1115,7 +1115,7 @@
                                             "ltm rule /Common/rule_nginxIngressPool {\n",
                                             "   when HTTP_REQUEST {\n",
                                             "       set nginxIngressPool \"/nginx/ingress_nginx-ingress_nginx-ingress-controller-a\"\n",
-                                            "       pool \$nginxIngressPool\n",
+                                            "       pool \\$nginxIngressPool\n",
                                             "   }\n",
                                             "}\n",
                                             "EOF",
