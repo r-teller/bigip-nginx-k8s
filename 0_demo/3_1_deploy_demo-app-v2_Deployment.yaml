@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: financial-reporting-v2
-        image: rteller/hello:purple
+        image: rteller/hello:indigo
         imagePullPolicy: Always
         ports:
         - containerPort: 80

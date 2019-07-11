@@ -1106,10 +1106,22 @@
                                             { "Fn::Sub": [ "tmsh create net self ${Self_IP}", { "Self_IP": { "Fn::Select" : [0, {"Fn::GetAtt" : [ "ENAPublicBigIP02" , "SecondaryPrivateIpAddresses" ]} ] } }]}, "/${dev1_pfx}  vlan external allow-service none traffic-group traffic-group-1\n",
                                             { "Fn::Sub": [ "tmsh create net self ${Self_IP}", { "Self_IP": { "Fn::Select" : [1, {"Fn::GetAtt" : [ "ENAPrivateBigIP01" , "SecondaryPrivateIpAddresses" ]} ] } }]}, "/${dev2_pfx}  vlan internal allow-service default traffic-group traffic-group-local-only\n",
                                             { "Fn::Sub": [ "tmsh create net self ${Self_IP}", { "Self_IP": { "Fn::Select" : [0, {"Fn::GetAtt" : [ "ENAPrivateBigIP01" , "SecondaryPrivateIpAddresses" ]} ] } }]}, "/${dev2_pfx}  vlan internal allow-service default traffic-group traffic-group-1\n",
+                                            "tmsh save /sys config\n",
+                                            "date\n",
+                                            "echo 'appending iRule to bigip.conf'\n",
+                                            "cat <<EOF >> /config/bigip.conf\n",
+                                            "ltm rule /Common/rule_nginxIngressPool {\n",
+                                            "   when HTTP_REQUEST {\n",
+                                            "       set nginxIngressPool \"/nginx/ingress_nginx-ingress_nginx-ingress-controller-a\"\n",
+                                            "       pool \$nginxIngressPool\n",
+                                            "   }\n",
+                                            "}\n",
+                                            "EOF",
+                                            "tmsh load /sys/config\n",
                                             "date\n",
                                             "echo 'create virtual-servers'\n",
                                             { "Fn::Sub": [
-                                                "tmsh create ltm virtual k8s_vip_https destination ${Destination_IP}:443  profiles add { http {} clientssl { context clientside } } vlans add { external } source-address-translation { type automap }\n",
+                                                "tmsh create ltm virtual k8s_vip_https destination ${Destination_IP}:443  profiles add { http {} clientssl { context clientside } } rules {/Common/rule_nginxIngressPool  } vlans add { external } vlans-enabled source-address-translation { type automap }\n",
                                                 { "Destination_IP": {
                                                     "Fn::Select" : [2, {"Fn::GetAtt" : [ "ENAPublicBigIP02" , "SecondaryPrivateIpAddresses" ]}]
                                                     } }]},

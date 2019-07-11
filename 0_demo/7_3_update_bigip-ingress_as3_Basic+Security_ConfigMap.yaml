@@ -26,6 +26,9 @@ data:
                         "virtualAddresses": [
                             "10.10.2.70"
                         ],
+                        "iRules": [
+                            "x_header_insert"
+                        ],
                         "remark":"ingress: basic-demo",
                         "virtualPort": 80,
                         "pool": "as3_basic_pool"
@@ -41,6 +44,11 @@ data:
                                 "serverAddresses": []
                             }
                         ]
+                    },
+                   "x_header_insert": {
+                        "class": "iRule",
+                        "iRule": "when HTTP_REQUEST {\n eval [LB::select]\n HTTP::header insert x-node-address [LB::server addr]\n}\n",
+                        "expand": true
                     },
                     "http_nginxIngress_monitor": {
                         "class": "Monitor",
@@ -59,6 +67,9 @@ data:
                         "class": "Service_HTTP",
                         "virtualAddresses": [
                             "10.10.2.70"
+                        ],
+                        "iRules": [
+                            "x_header_insert"
                         ],
                         "remark":"ingress: waf-demo",
                         "virtualPort": 8080,
@@ -83,6 +94,11 @@ data:
                                 "serverAddresses": []
                             }
                         ]
+                    },
+                   "x_header_insert": {
+                        "class": "iRule",
+                        "iRule": "when HTTP_REQUEST {\n eval [LB::select]\n HTTP::header insert x-node-address [LB::server addr]\n}\n",
+                        "expand": true
                     },
                     "http_nginxIngress_monitor": {
                         "class": "Monitor",
