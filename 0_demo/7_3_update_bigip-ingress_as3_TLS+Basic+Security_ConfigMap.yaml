@@ -78,13 +78,13 @@ data:
                 "as3_security_app": {
                     "class": "Application",
                     "template": "generic",
-                    "basic_app_https-Redirect": {
+                    "security_app_https_Redirect": {
                         "class": "Service_HTTP",
                         "virtualAddresses": [
                             "10.10.2.70"
                         ],
                         "iRules": [
-                            "Redirect_iRule_8443
+                            "Redirect_iRule_8443"
                         ],
                         "remark": "ingress: waf-demo-redirect",
                         "virtualPort": 8080
@@ -126,7 +126,7 @@ data:
                     },
                     "Redirect_iRule_8443": {
                         "class": "iRule",
-                        "iRule": "when HTTP_REQUEST {\n   HTTP::respond 307 location https://[HTTP::host]:8443/[HTTP::uri]\n}\n",
+                        "iRule": "when HTTP_REQUEST {\n   HTTP::respond 307 location https://[HTTP::host]:8443[HTTP::uri]\n}\n",
                         "expand": true
                     },
                     "as3_security_pool": {

@@ -687,7 +687,7 @@
                 ]
             }
         },
-        "EC2JumpHostV2": {
+        "EC2JumpHost": {
             "Type" : "AWS::EC2::Instance",
             "Metadata" : {
                 "AWS::CloudFormation::Init" : {
@@ -768,7 +768,9 @@
                                                 "\t--node-security-groups=${KOPS_SECURITY_GROUP} \\\n",
                                                 "\t--master-size=t3.medium \\\n",
                                                 "\t--ssh-public-key=/home/ec2-user/.ssh/authorized_keys \\\n",
-                                                "\t--name=${KOPS_NAME} --yes\n\n"
+                                                "\t--name=${KOPS_NAME}\n\n",
+                                            "kops get cluster --name $KOPS_NAME -o json | jq '.spec.nonMasqueradeCIDR=\"10.10.32.0/20\"' | kops replace -f /dev/stdin\n",
+                                            "kops update cluster --yes\n"
                                         ]
                                     ]
                                 }
@@ -939,7 +941,7 @@
                                 "/opt/aws/apitools/cfn-init/bin/cfn-init -v \\\n",
                                 "\t--configsets InstallAndConfigure \\\n",
                                 "\t--stack ${STACK_ID} \\\n",
-                                "\t--resource EC2JumpHostV2 \\\n",
+                                "\t--resource EC2JumpHost \\\n",
                                 "\t--region ${Region} \n"
                             ]
                         ]
@@ -1331,7 +1333,7 @@
         },
         "JumpHost": {
             "Description": "SSH to JumpHost",
-            "Value": { "Fn::Sub": [ "ec2-user@${PublicDnsName}", {"PublicDnsName": { "Fn::GetAtt" : [ "EC2JumpHostV2" , "PublicDnsName" ] }}]}
+            "Value": { "Fn::Sub": [ "ec2-user@${PublicDnsName}", {"PublicDnsName": { "Fn::GetAtt" : [ "EC2JumpHost" , "PublicDnsName" ] }}]}
         },
         "DeleteSyntax": {
             "Description": "Use this command on the JumpHost to deprovision your stack",

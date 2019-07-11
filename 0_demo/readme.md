@@ -455,7 +455,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ```
 
 ## 5) Create Big-IP, K8s & F5 Container Ingress Services integration using AS3
-1. Deploy service AS3 will use to map to the nginx-ingress-controller pods
+1. (From JumpHost) Deploy service AS3 will use to map to the nginx-ingress-controller pods
     * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/5_1_create_bigip-ingress_as3_Basic_Service.yaml
     ```bash
     ## Example response
@@ -466,15 +466,41 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     NAME                   TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
     f5-as3-basic-service   NodePort   10.10.6.126   <none>        80:32147/TCP   16s
     ```
-2. Apply the AS3 configmap, this will create the required virtual and pool on the Big-IP
-3. (From Big-IP) View created virtual and pool
-    * tmsh list ltm virtual /as3_tenant/as3_basic_app/basic_app
+1. (From JumpHost) Apply AS3 Configmap
+    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/5_2_create_bigip-ingress_as3_Basic_ConfigMap.yaml
+    ```bash
+    ## Example response
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/5_2_create_bigip-ingress_as3_Basic_ConfigMap.yaml
+    configmap/f5-as3-configmap created
+    ```
+    * Note: Applying the AS3 configmap, will create the required virtual and pool on the Big-IP
+1. (From Big-IP) View created virtual and pool
     * tmsh list ltm pool /as3_tenant/as3_basic_app/as3_basic_pool
+    * tmsh list ltm virtual /as3_tenant/as3_basic_app/basic_app_http
     ```bash
     ## Example response
 
-    [admin@ip-10-10-1-50:Active:Standalone] ~ # tmsh list ltm virtual /as3_tenant/as3_basic_app/basic_app
-    ltm virtual /as3_tenant/as3_basic_app/basic_app {
+    [admin@ip-10-10-1-50:Active:Standalone] ~ # tmsh list ltm pool /as3_tenant/as3_basic_app/as3_basic_pool
+    ltm pool /as3_tenant/as3_basic_app/as3_basic_pool {
+        members {
+            /as3_tenant/10.10.3.46:http {
+                address 10.10.3.46
+                session monitor-enabled
+                state up
+                metadata {
+                    source {
+                        value declaration
+                    }
+                }
+            }
+        }
+        min-active-members 1
+        monitor min 1 of { /as3_tenant/as3_basic_app/http_nginxIngress_monitor }
+        partition as3_tenant
+    }
+
+    [admin@ip-10-10-1-50:Active:Standalone] ~ # tmsh list ltm virtual /as3_tenant/as3_basic_app/basic_app_http
+    ltm virtual /as3_tenant/as3_basic_app/basic_app_http {
         description "ingress: as3-basic-demo"
         destination /as3_tenant/10.10.2.70:http
         ip-protocol tcp
@@ -502,27 +528,8 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         translate-port enabled
         vs-index 4
     }
-
-    [admin@ip-10-10-1-50:Active:Standalone] ~ # tmsh list ltm pool /as3_tenant/as3_basic_app/as3_basic_pool
-    ltm pool /as3_tenant/as3_basic_app/as3_basic_pool {
-        members {
-            /as3_tenant/10.10.3.46:http {
-                address 10.10.3.46
-                session monitor-enabled
-                state up
-                metadata {
-                    source {
-                        value declaration
-                    }
-                }
-            }
-        }
-        min-active-members 1
-        monitor min 1 of { /as3_tenant/as3_basic_app/http_nginxIngress_monitor }
-        partition as3_tenant
-    }    
     ```
-4. (From JumpHost) Notice that the pool member maps to the pod ip
+1. (From JumpHost) Notice that the pool member maps to the pod ip
     * kubectl get pods -n nginx-ingress -l app=nginx-ingress-controller-b -o wide
     ```bash
     ## Example response
@@ -530,7 +537,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     NAME                               READY   STATUS    RESTARTS   AGE     IP           NODE                                        NOMINATED NODE
     nginx-ingress-controller-b-jwqkj   1/1     Running   0          7h55m   10.10.3.46   ip-10-10-3-192.us-west-1.compute.internal   <none>
     ```    
-5. Curl to the Public_IP associated to 10.10.2.70, if you need to find the public IP see step 2B_7.
+1. Curl to the Public_IP associated to 10.10.2.70, if you need to find the public IP see step 2B_7.
     * Notice: If you attempt to browse to http://54.183.71.63 you will get an HTTP error message unless you update your host file to include a mapping for example (reporting.acmefinancial.net 54.183.71.63)
     ```bash
     ## Example response
@@ -585,7 +592,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
 
     Changes may require instances to restart: kops rolling-update cluster    
     ```
-2. (From JumpHost) Verify additional nodes have been created
+1. (From JumpHost) Verify additional nodes have been created
     * kubectl get nodes
     ```bash
     ## Example response
@@ -598,7 +605,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ip-10-10-3-235.us-west-1.compute.internal   Ready    node     105s   v1.12.8   10.10.3.235   <none>        Debian GNU/Linux 9 (stretch)   4.9.0-9-amd64    docker://18.6.3
     ```
 
-3. (From JumpHost) Notice that additional pods have been created as well since it was deployed as a DaemonSet
+1. (From JumpHost) Notice that additional pods have been created as well since it was deployed as a DaemonSet
     * kubectl get pods -n nginx-ingress -l app=nginx-ingress-controller-b -o wide
     ```bash
     ## Example response
@@ -610,7 +617,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     nginx-ingress-controller-b-jwqkj   1/1     Running   0          8h      10.10.3.46    ip-10-10-3-192.us-west-1.compute.internal   <none>
     ```
 
-4. (From Big-IP) Notice that the new pods were added as pool members
+1. (From Big-IP) Notice that the new pods were added as pool members
     * tmsh list ltm pool /as3_tenant/as3_basic_app/as3_basic_pool
     ```bash
     ## Example response
@@ -653,4 +660,278 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         monitor min 1 of { /as3_tenant/as3_basic_app/http_nginxIngress_monitor }
         partition as3_tenant
     }
+    ```
+## 7) AS3 Example adding Application Security and HTTPS
+1. (From JumpHost) Deploy new K8s service that will be used to enable WAF through AS3, similar to service deployed earlier in step 5.1
+    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/7_1_create_bigip-ingress_as3_Security_Service.yaml
+    ```bash
+    ## Example response
+
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/7_1_create_bigip-ingress_as3_Security_Service.yaml
+    service/f5-as3-security-service created
+
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl get svc -n nginx-ingress f5-as3-security-service
+    NAME                      TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
+    f5-as3-security-service   NodePort   10.10.18.62   <none>        80:32085/TCP   6s
+    ```
+
+1. (From JumpHost) Apply updated settings to the AS3 configmap deployed earlier in step 5.2
+    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/7_2_update_bigip-ingress_as3_Basic+Security_ConfigMap.yaml
+    ```bash
+    ## Example response
+
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/7_2_update_bigip-ingress_as3_Basic+Security_ConfigMap.yaml
+    configmap/f5-as3-configmap configured
+    ```
+    * Note: Applying the AS3 configmap, this will create the required virtual and pool on the Big-IP
+
+1. (From Big-IP) View created virtual and pool
+    * tmsh list ltm pool /as3_tenant/as3_security_app/as3_security_pool
+    * tmsh list ltm virtual /as3_tenant/as3_security_app/security_app_http
+    ```bash
+    ## Example response
+
+    [admin@ip-10-10-1-50:Active:Standalone] ~ # tmsh list ltm pool /as3_tenant/as3_security_app/as3_security_pool     
+    ltm pool /as3_tenant/as3_security_app/as3_security_pool {
+        members {
+            /as3_tenant/10.10.3.159:80 {
+                address 10.10.3.159
+                session monitor-enabled
+                state up
+                metadata {
+                    source {
+                        value declaration
+                    }
+                }
+            }
+            /as3_tenant/10.10.3.190:80 {
+                address 10.10.3.190
+                session monitor-enabled
+                state up
+                metadata {
+                    source {
+                        value declaration
+                    }
+                }
+            }
+            /as3_tenant/10.10.3.46:80 {
+                address 10.10.3.46
+                session monitor-enabled
+                state up
+                metadata {
+                    source {
+                        value declaration
+                    }
+                }
+            }
+        }
+        min-active-members 1
+        monitor min 1 of { /as3_tenant/as3_security_app/http_nginxIngress_monitor }
+        partition as3_tenant
+    }
+
+    [admin@ip-10-10-1-50:Active:Standalone] ~ # tmsh list ltm virtual /as3_tenant/as3_security_app/security_app_http
+    ltm virtual /as3_tenant/as3_security_app/security_app_http {
+        creation-time 2019-07-11:11:28:06
+        description "ingress: waf-demo"
+        destination /as3_tenant/10.10.2.70:8080
+        ip-protocol tcp
+        last-modified-time 2019-07-11:11:28:06
+        mask 255.255.255.255
+        partition as3_tenant
+        persist {
+            cookie {
+                default yes
+            }
+        }
+        policies {
+            /as3_tenant/as3_security_app/_WAF_security_app_http { }
+        }
+        pool /as3_tenant/as3_security_app/as3_security_pool
+        profiles {
+            /as3_tenant/as3_security_app/ASM_OWASPAutoTune { }
+            f5-tcp-progressive { }
+            http { }
+            websecurity { }
+        }
+        rules {
+            /as3_tenant/as3_security_app/x_header_insert
+        }
+        security-log-profiles {
+            "Log all requests"
+        }
+        source 0.0.0.0/0
+        source-address-translation {
+            type automap
+        }
+        translate-address enabled
+        translate-port enabled
+        vs-index 7
+    }
+    ```
+
+1. Curl to the Public_IP associated to 10.10.2.70:8080, if you need to find the public IP see step 2B_7.
+    * Notice: If you attempt to browse to http://54.183.71.63:8080 you will get an HTTP error message unless you update your host file to include a mapping for example (reporting.acmefinancial.net 54.183.71.63)
+    ```bash
+    ## Example response
+    [admin@ip-10-10-1-50:Active:Standalone] ~ # curl http://54.183.71.63:8080 -k -H "Host: reporting.acmefinancial.net"
+    <html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>Your support ID is: 4146775531125211156<br><br><a href='javascript:history.back();'>[Go Back]</a></body></html>
+    ```
+    * Notice: Now that a security policy is applied to the virtualServer curl requests are blocked and a support id is returned instead
+
+1. (From JumpHost) Apply updated settings to the AS3 configmap deployed earlier to add HTTPS support
+    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/7_3_update_bigip-ingress_as3_TLS+Basic+Security_ConfigMap.yaml
+    ```bash
+    ## Example response
+
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/7_3_update_bigip-ingress_as3_TLS+Basic+Security_ConfigMap.yaml
+    configmap/f5-as3-configmap configured
+    ```
+    * Note: Applying the AS3 configmap, this will create the required virtual and pool on the Big-IP
+
+1. (From Big-IP) View update virtual
+    * tmsh list ltm virtual /as3_tenant/as3_security_app/*
+
+    ```bash
+    ## Example response
+
+    [admin@ip-10-10-1-50:Active:Standalone] ~ # tmsh list ltm virtual /as3_tenant/as3_security_app/*
+    ltm virtual /as3_tenant/as3_security_app/security_app_https_Redirect {
+        creation-time 2019-07-11:13:10:59
+        description "ingress: waf-demo-redirect"
+        destination /as3_tenant/10.10.2.70:8080
+        ip-protocol tcp
+        last-modified-time 2019-07-11:13:10:59
+        mask 255.255.255.255
+        partition as3_tenant
+        persist {
+            cookie {
+                default yes
+            }
+        }
+        profiles {
+            f5-tcp-progressive { }
+            http { }
+        }
+        rules {
+            /as3_tenant/as3_security_app/Redirect_iRule_8443
+        }
+        source 0.0.0.0/0
+        source-address-translation {
+            type automap
+        }
+        translate-address enabled
+        translate-port enabled
+        vs-index 12
+    }
+    ltm virtual /as3_tenant/as3_security_app/seucirty_app_https {
+        creation-time 2019-07-11:13:05:54
+        description "ingress: waf-demo"
+        destination /as3_tenant/10.10.2.70:8443
+        ip-protocol tcp
+        last-modified-time 2019-07-11:13:05:54
+        mask 255.255.255.255
+        partition as3_tenant
+        persist {
+            cookie {
+                default yes
+            }
+        }
+        policies {
+            /as3_tenant/as3_security_app/_WAF_seucirty_app_https { }
+        }
+        pool /as3_tenant/as3_security_app/as3_security_pool
+        profiles {
+            /as3_tenant/as3_security_app/ASM_OWASPAutoTune { }
+            /as3_tenant/as3_security_app/webtls {
+                context clientside
+            }
+            f5-tcp-progressive { }
+            http { }
+            websecurity { }
+        }
+        rules {
+            /as3_tenant/as3_security_app/x_header_insert
+        }
+        security-log-profiles {
+            "Log all requests"
+        }
+        source 0.0.0.0/0
+        source-address-translation {
+            type automap
+        }
+        translate-address enabled
+        translate-port enabled
+        vs-index 11
+    }
+    ```
+1. Curl to the Public_IP associated to 10.10.2.70:8080, if you need to find the public IP see step 2B_7.
+    * Notice: If you attempt to browse to http://54.183.71.63:8080 you will get an HTTP error message unless you update your host file to include a mapping for example (reporting.acmefinancial.net 54.183.71.63)
+    ```bash
+    ## Example response
+
+    [admin@ip-10-10-1-50:Active:Standalone] ~ # curl http://54.183.71.63:8080 -k -H "Host: reporting.acmefinancial.net" -v
+    * Rebuilt URL to: http://54.183.71.63:8080/
+    *   Trying 54.183.71.63...
+    * Connected to 54.183.71.63 (54.183.71.63) port 8080 (#0)
+    > GET / HTTP/1.1
+    > Host: reporting.acmefinancial.net
+    > User-Agent: curl/7.47.1
+    > Accept: */*
+    >
+    * HTTP 1.0, assume close after body
+    < HTTP/1.0 307 Temporary Redirect
+    < location: https://reporting.acmefinancial.net:8443/
+    < Server: BigIP
+    * HTTP/1.0 connection set to keep alive!
+    < Connection: Keep-Alive
+    < Content-Length: 0
+    <
+    * Connection #0 to host 54.183.71.63 left intact
+    ```
+    * Notice: Now that the request was redirected HTTPS and port 8443
+
+## 8) Remove AS3 example applications from BIG-IP
+1. (From JumpHost) Apply configmap with empty spec
+    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
+    ```bash
+    ## Example response
+
+    [ec2-user@ip-10-10-1-10 ~]$ cat /tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
+    kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: f5-as3-configmap
+      namespace: nginx-ingress
+      labels:
+        f5type: virtual-server
+        as3: "true"
+    data:
+      template: |
+        {
+          "class": "AS3",
+          "declaration": {
+            "class": "ADC",
+            "schemaVersion": "3.10.0",
+            "id": "urn:uuid:33045210-3ab8-4636-9b2a-c98d22ab915d",
+            "label": "Sample 1",
+            "remark": "Remove AS3 declaration",
+            "as3_tenant": {
+              "class": "Tenant"
+            }
+          }
+        }
+
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
+    configmap/f5-as3-configmap configured
+    ```
+    * Note: Applying the AS3 configmap, this will delete the virtual and pool objects created on the Big-IP earlier.
+
+2. (From JumpHost) Delete the configmap object from K8s
+    * kubectl delete -f /tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
+    ```bash
+    ## Example response
+
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl delete -f /tmp/bigip-nginx-k8s/0_demo/9_1_delete_bigip-ingress_as3_ConfigMap.yaml
+    kind: ConfigMapconfigmap "f5-as3-configmap" deleted
     ```

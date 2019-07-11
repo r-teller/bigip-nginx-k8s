@@ -21,7 +21,7 @@ data:
                 "as3_basic_app": {
                     "class": "Application",
                     "template": "generic",
-                    "basic_app": {
+                    "basic_app_http": {
                         "class": "Service_HTTP",
                         "virtualAddresses": [
                             "10.10.2.70"
@@ -63,7 +63,7 @@ data:
                 "as3_security_app": {
                     "class": "Application",
                     "template": "generic",
-                    "seucirty_app": {
+                    "seucirty_app_http": {
                         "class": "Service_HTTP",
                         "virtualAddresses": [
                             "10.10.2.70"
