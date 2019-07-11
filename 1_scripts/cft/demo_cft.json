@@ -1127,7 +1127,7 @@
                                             "   }\n",
                                             "}\n",
                                             "EOF\n",
-                                            "tmsh load /sys/config\n",
+                                            "tmsh load /sys config\n",
                                             "date\n",
                                             "echo 'create virtual-servers'\n",
                                             { "Fn::Sub": [
