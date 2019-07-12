@@ -18,7 +18,18 @@ For demo information see --> [Demo Steps](/0_demo/readme.md)
 * Please note that the PAYG license for Big-IP requires acceptance of terms and subscription. https://aws.amazon.com/marketplace/server/procurement?productId=0d09bfd3-90c5-4b9c-98a2-c3860dbfcd9e
 
 # Overview
-This demo was put in place to simplify the process of deploying F5 BIG-IP & NGINX-Ingress Controller running inside of Kubernetes.
+This demo was put in place to simplify the process of deploying F5 BIG-IP & NGINX-Ingress Controller running inside of Kubernetes and was based on the bridging the divide webinar.
+
+The provided CFT will create all required decencies in AWS and deploy a configured Big-IP and Kubernetes environment. Once the environment is created you will be able to demo the following scenarios
+1.	Big-IP acting as the initial point of ingress into a customers environment with a manually configured virtual-server managed by David that is able to dynamically forward traffic to nginx-ingress controller that is owned by Olivia
+2.	Big-IP acting as the initial point of ingress into a customers environment with a dynamically configured virtual-server that is able to dynamically forward traffic to nginx-ingress controller, both objects are managed by Olivia
+3.	Olivia easily adds OWASP top 10 protection to her application by updating the K8s configuration
+4.	Olivia easily adds HTTPS termination to her application by updating the K8s configuration
+ 
+Please take a look at https://github.com/r-teller/bigip-nginx-k8s and let me know if you have any questions or concerns.
+ 
+If you haven’t seen the webinar you can find it at https://gateway.on24.com/wcc/gateway/f5networks/1140560/2020361/bridging-the-divide-our-joint-vision-for-adc-services
+
 
 ## AWS
 ![Example VPC Architecture](/2_images/Env_VPC.png)
