@@ -2,7 +2,7 @@
 1. Deploy the CFT and provide an EnvironmentName and Select your SSH-KeyPair
     * The EnvironmentName must be lowercase alpha and is used for naming of all created objects
 ![Example CFT Input](../2_images/Example_CFT_Input.png)
-2. Once your environment is created you can SSH into the JumpHost and Big-IP to start exploring the deployed infrastructure
+1. Once your environment is created you can SSH into the JumpHost and Big-IP to start exploring the deployed infrastructure
     * As the JumpHost is provisioned it establishes environment variables, if you SSH in before they are populated you may have to exit your session and restart it
 ![Example CFT Output](../2_images/Example_CFT_Output.png)
 
@@ -10,7 +10,7 @@
 ### 2_A) Verify JumpHost
 All steps in this session will assume you have successfully SSH to the JumpHost
 1. Check /tmp/setup_k8s.log for error messages
-2. Verify you have the correct number of K8s nodes were created
+1. Verify you have the correct number of K8s nodes were created
     * kubectl get nodes
     ```bash
     ## Example response
@@ -19,7 +19,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ip-10-10-3-192.us-west-1.compute.internal   Ready    node     11m   v1.12.8
     ip-10-10-3-211.us-west-1.compute.internal   Ready    master   12m   v1.12.8
     ```
-3. Verify the correct number of namespaces were created
+1. Verify the correct number of namespaces were created
     * kubectl get namespaces
     ```bash
     ## Example response
@@ -31,7 +31,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     kube-system     Active   14m
     nginx-ingress   Active   13m
     ```
-4. Verify correct number of pods exist in the nginx-ingress namespace
+1. Verify correct number of pods exist in the nginx-ingress namespace
     * kubectl get pods -n nginx-ingress
     ```bash
     ## Example response
@@ -40,10 +40,10 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     nginx-ingress-controller-a-7855674844-z6fqj   1/1     Running   0          6m2s
     nginx-ingress-controller-b-jwqkj              1/1     Running   0          5m3s
     ```
-5. If any of the pods in the nginx-ingress namespace are in a state OTHER than Running you can check the log for error messages
+1. If any of the pods in the nginx-ingress namespace are in a state OTHER than Running you can check the log for error messages
     * kubectl logs -n nginx-ingress nginx-ingress-controller-b-jwqkj
 
-6. Verify correct number of pods exist in the bigip-ingress namespace
+1. Verify correct number of pods exist in the bigip-ingress namespace
     * kubectl get pods -n bigip-ingress
     ```bash
     ## Example response
@@ -51,7 +51,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     NAME                                         READY   STATUS    RESTARTS   AGE
     k8s-bigip-ctlr-deployment-5647678499-pkzbc   1/1     Running   0          6m32s
     ```
-7. If any of the pods in the bigip-ingress namespace are in a state OTHER than Running you can check the log for error messages
+1. If any of the pods in the bigip-ingress namespace are in a state OTHER than Running you can check the log for error messages
     * kubectl logs -n bigip-ingress k8s-bigip-ctlr-deployment-5647678499-pkzbc
 
 ### 2_B) Verify Big-IP
@@ -65,7 +65,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     Wed Jul 10 12:17:32 PDT 2019
     #....Truncated....
     ```
-2. Verify service account was created
+1. Verify service account was created
     * tmsh list auth user BigIPk8s
     ```bash
     ## Example response
@@ -82,7 +82,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         shell none
     }
     ```
-3. Verify correct number of Self_IP were created
+1. Verify correct number of Self_IP were created
     * tmsh list net self
     ```bash
     ## Example response
@@ -118,7 +118,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         vlan external
     }
     ```
-4. Verify AS3 iAppLX was installed
+1. Verify AS3 iAppLX was installed
     * tmsh list mgmt shared iapp installed-packages
     ```bash
     ## Example response
@@ -156,14 +156,14 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         version "1.1.0"
     }
     ```
-5. Verify nginx partition was created
+1. Verify nginx partition was created
     * tmsh list auth partition nginx    
     ```bash
     ## Example response
     [admin@ip-10-10-1-50:Active:Standalone] ~ # tmsh list auth partition nginx
     auth partition nginx { }
     ```
-6. Verify example virtual-server was created
+1. Verify example virtual-server was created
     * tmsh list ltm virtual k8s_vip_https
     ```bash
     ## Example response
@@ -193,22 +193,25 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         vs-index 2
     }
     ```
-7. View public_ip mapped to Big-IP private_ip
+1. View public_ip mapped to Big-IP private_ip
+    * /tmp/findPublicIP.sh 10.10.2.60
     ```bash
+    ## PublicI
     externalMac=`cat /sys/class/net/external/address`
     for pubV4 in `curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${externalMac}/ipv4-associations/`
-        do
-            privV4=`curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${externalMac}/ipv4-associations/${pubV4}`
-            case ${privV4} in
-                '10.10.2.60')
-                    echo "10.10.2.60 == ${pubV4}"
-                    ;;
-                '10.10.2.70')
-                    echo "10.10.2.70 == ${pubV4}"
-                    ;;
-            esac
-        done
+    do
+        privV4=`curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${externalMac}/ipv4-associations/${pubV4}`
+        case ${privV4} in
+            '10.10.2.60')
+                echo "10.10.2.60 == ${pubV4}"
+                ;;
+            '10.10.2.70')
+                echo "10.10.2.70 == ${pubV4}"
+                ;;
+        esac
+    done
 
+    ## ExampleOutput
     10.10.2.60 == 54.241.193.4
     10.10.2.70 == 54.183.71.63
     ```
