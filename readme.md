@@ -14,7 +14,7 @@
 
 # Demo Steps
 For demo information see --> [Demo Steps](/0_demo/readme.md)
-CloudFormation Template --> [demo_cft.json] (/1_scripts/cft/demo_cft.json)
+CloudFormation Template --> [demo_cft.json](/1_scripts/cft/demo_cft.json)
 
 * Please note that the PAYG license for Big-IP requires acceptance of terms and subscription. https://aws.amazon.com/marketplace/server/procurement?productId=0d09bfd3-90c5-4b9c-98a2-c3860dbfcd9e
 
