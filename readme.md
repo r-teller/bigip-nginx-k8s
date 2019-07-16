@@ -14,6 +14,7 @@
 
 # Demo Steps
 For demo information see --> [Demo Steps](/0_demo/readme.md)
+CloudFormation Template --> [demo_cft.json] (/1_scripts/cft/demo_cft.json)
 
 * Please note that the PAYG license for Big-IP requires acceptance of terms and subscription. https://aws.amazon.com/marketplace/server/procurement?productId=0d09bfd3-90c5-4b9c-98a2-c3860dbfcd9e
 
@@ -25,9 +26,7 @@ The provided CFT will create all required decencies in AWS and deploy a configur
 2.	Big-IP acting as the initial point of ingress into a customers environment with a dynamically configured virtual-server that is able to dynamically forward traffic to nginx-ingress controller, both objects are managed by Olivia
 3.	Olivia easily adds OWASP top 10 protection to her application by updating the K8s configuration
 4.	Olivia easily adds HTTPS termination to her application by updating the K8s configuration
- 
-Please take a look at https://github.com/r-teller/bigip-nginx-k8s and let me know if you have any questions or concerns.
- 
+
 If you haven’t seen the webinar you can find it at https://gateway.on24.com/wcc/gateway/f5networks/1140560/2020361/bridging-the-divide-our-joint-vision-for-adc-services
 
 
@@ -103,6 +102,15 @@ After the jump host finishes initializing cloudinit provision two additional EC2
     - kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/2_1_deploy_demo-app-v1_Deployment.yaml
         - applies the yaml spec specified in the referenced file, this example would create the pods for demo-app-v1
 
+## Big-IP
+When you SSH into a Big-IP your default terminal is TMSH, to exit into bash you will need to type bash
+
+```bash
+    Last login: Mon Jul 15 16:06:59 2019 from 50.204.110.20
+    admin@(ip-10-10-1-50)(cfg-sync Standalone)(Active)(/Common)(tmos)# bash
+    [admin@ip-10-10-1-50:Active:Standalone] ~ #
+```
+
 ## Deprovisioning Notes
 It is important to delete the demo environment correctly using the deprovision script provided on the JumpHost. If resources are deleted in the incorrect order it is possible to leave orphaned objects in your AWS environment that could make deletion of the CFT challenging.
 
@@ -115,5 +123,6 @@ The deprovision script deletes the K8s environment and cleans up all artifacts a
 
 ## Things to do
 1. Add support for Bring Your Own Environment
-2. Add support for infrastructure only deployments
-3. Add support for Bring Your Own Licensed Big-IP
+1. Add support for infrastructure only deployments
+1. Add support for Bring Your Own Licensed Big-IP
+1. Add support for deployment to existing K8s environment

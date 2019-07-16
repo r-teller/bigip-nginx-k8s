@@ -1049,6 +1049,12 @@
                                 "owner":  "root",
                                 "source":  "https://raw.githubusercontent.com/r-teller/bigip-nginx-k8s/master/1_scripts/shell/bigip_utils.sh"
                             },
+                            "/tmp/findPublicIP.sh": {
+                                "group":  "root",
+                                "mode":  "000755",
+                                "owner":  "root",
+                                "source":  "https://raw.githubusercontent.com/r-teller/bigip-nginx-k8s/master/1_scripts/shell/findPublicIP.sh"
+                            },
                             "/tmp/firstrun.sh": {
                                 "content": {
                                     "Fn::Join": [
@@ -1159,9 +1165,6 @@
                         "commands": {
                             "01-configure-Bigip": {
                                 "command":  "/tmp/firstrun.sh\n"
-                            },
-                            "02-install-appsvcs": {
-                                "command": "tmsh create mgmt shared iapp package-management-tasks operation INSTALL packageFilePath /tmp/f5-appsvcs.oarch.rpm\n"
                             }
                         }
                     }
@@ -1339,6 +1342,10 @@
                         ]
                     ]
                 }
+        },
+        "BigIPinstanceId": {
+            "Description": "InstanceID for the Big-IP",
+            "Value": {"Ref": "EC2BigIPPAYG"}
         },
         "JumpHost": {
             "Description": "SSH to JumpHost",
