@@ -57,6 +57,9 @@ All steps in this session will assume you have successfully SSH to the JumpHost
 ### 2_B) Verify Big-IP
 * All steps in this session will assume you have successfully SSH to the Big-Ip and exited TMSH by typing bash
 * The default admin password for the GUI is the AWS instance-id
+1. Example SSH Syntax for Big-IP
+    * ssh -i PrivateKey.pem admin@ec2-54-183-91.us-west-1.compute.amazonaws.com
+    * Note: if you receive an error similar to "It is recommended that your private key files are NOT accessible by others." you can fix this with 'chmod 700 PrivateKey.pem'
 1. Check /tmp/firstrun.log for error messages
     ```bash
     ## Example steps
@@ -195,25 +198,16 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ```
 1. View public_ip mapped to Big-IP private_ip
     * /tmp/findPublicIP.sh 10.10.2.60
+    * /tmp/findPublicIP.sh 10.10.2.70
     ```bash
-    ## PublicI
-    externalMac=`cat /sys/class/net/external/address`
-    for pubV4 in `curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${externalMac}/ipv4-associations/`
-    do
-        privV4=`curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/${externalMac}/ipv4-associations/${pubV4}`
-        case ${privV4} in
-            '10.10.2.60')
-                echo "10.10.2.60 == ${pubV4}"
-                ;;
-            '10.10.2.70')
-                echo "10.10.2.70 == ${pubV4}"
-                ;;
-        esac
-    done
+    ## Example response
 
-    ## ExampleOutput
-    10.10.2.60 == 54.241.193.4
-    10.10.2.70 == 54.183.71.63
+    [admin@ip-10-10-1-50:Active:Standalone] tmp # ./findPublicIP.sh 10.10.2.60
+    Private IP <10.10.2.60> maps to Public IP <54.241.193.4>    
+
+
+    [admin@ip-10-10-1-50:Active:Standalone] tmp # ./findPublicIP.sh 10.10.2.70
+    Private IP <10.10.2.70> maps to Public IP <54.183.71.63>
     ```
 ## 3) Create Pool only Big-IP, K8s & F5 Container Ingress Services integration
 1. (From JumpHost) Create K8s ingress
@@ -558,7 +552,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
 
 ## 6) Scale nginx-ingress-controllers
 1. (From JumpHost) Using /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh modify KOPs worker node from 1 to 3
-    * sudo chwon ec2-user:ec2-user /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
+    * sudo chown ec2-user:ec2-user /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
     * chmod +x /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
     * /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
     ```bash
