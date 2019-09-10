@@ -98,7 +98,7 @@ After the jump host finishes initializing cloudinit provision two additional EC2
         - returns all namespaces, you will notice that nginx-ingress and bigip-ingress were already created during platform standup
     - kubectl get pods -n bigip-ingress
         - returns all pods in the bigip-ingress namespace, you should see the k8s-bigip-ctlr already running and connected to your Big-IP
-    - kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/2_1_deploy_demo-app-v1_Deployment.yaml
+    - kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/2_1_deploy_demo-app-v1_Deployment.yaml
         - applies the yaml spec specified in the referenced file, this example would create the pods for demo-app-v1
 
 ## Big-IP
@@ -115,7 +115,7 @@ It is important to delete the demo environment correctly using the deprovision s
 
 To deprovisioning your demo environment run the following command on the JumpHost
 ```bash
-/tmp/deprovision_stack.sh
+/var/tmp/deprovision_stack.sh
 ```
 
 The deprovision script deletes the K8s environment and cleans up all artifacts associated to it and then deletes the CloudFormation Stack.

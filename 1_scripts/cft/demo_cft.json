@@ -703,7 +703,7 @@
                             }
                         },
                         "files": {
-                            "/tmp/setup_host.sh": {
+                            "/var/tmp/setup_host.sh": {
                                 "group":  "root",
                                 "mode":  "000755",
                                 "owner":  "root",
