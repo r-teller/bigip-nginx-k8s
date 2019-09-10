@@ -720,8 +720,8 @@
                                             "chmod +x ./kubectl ./kops\n",
                                             "mv ./kubectl ./kops /usr/bin/\n",
                                             "\n### git bigip-nginx-k8s repo\n",
-                                            "mkdir /tmp/bigip-nginx-k8s\n",
-                                            "git clone https://github.com/r-teller/bigip-nginx-k8s /tmp/bigip-nginx-k8s\n",
+                                            "mkdir /var/tmp/bigip-nginx-k8s\n",
+                                            "git clone https://github.com/r-teller/bigip-nginx-k8s /var/tmp/bigip-nginx-k8s\n",
                                             "\n### Configure AWSCLI\n",
                                             { "Fn::Sub": [ "echo export AWS_REGION=${AWS_REGION} >>  /etc/profile.d/88-all-profiles.sh\n", { "AWS_REGION": {"Ref" : "AWS::Region" }} ]},
                                             { "Fn::Sub": [ "echo export AWS_VPC_ID=${AWS_VPC_ID} >>  /etc/profile.d/88-all-profiles.sh\n", { "AWS_VPC_ID": {"Ref" : "VPC" }} ]},
@@ -734,7 +734,7 @@
                                     ]
                                 }
                             },
-                            "/tmp/provision_kops.sh": {
+                            "/var/tmp/provision_kops.sh": {
                                 "group":  "root",
                                 "mode":  "000755",
                                 "owner":  "root",
@@ -775,7 +775,7 @@
                                     ]
                                 }
                             },
-                            "/tmp/protect_stack.sh": {
+                            "/var/tmp/protect_stack.sh": {
                                 "group":  "root",
                                 "mode":  "000755",
                                 "owner":  "root",
@@ -785,13 +785,13 @@
                                         [
                                             "#!/bin/bash -xe\n\n",
                                             "### Protect stack from termination, to prevent orphaned k8s deployments\n",
-                                            "### run /tmp/deprovision_stack.sh to delete the stack\n",
+                                            "### run /var/tmp/deprovision_stack.sh to delete the stack\n",
                                             { "Fn::Sub": [ "sudo -u ec2-user aws cloudformation update-termination-protection --enable-termination-protection --stack-name ${StackName}\n", { "StackName": {"Ref" : "AWS::StackName" }} ]}
                                         ]
                                     ]
                                 }
                             },
-                            "/tmp/deprovision_stack.sh": {
+                            "/var/tmp/deprovision_stack.sh": {
                                 "group":  "root",
                                 "mode":  "000755",
                                 "owner":  "root",
@@ -817,7 +817,7 @@
                                     ]
                                 }
                             },
-                            "/tmp/setup_k8s.sh": {
+                            "/var/tmp/setup_k8s.sh": {
                                 "group":  "root",
                                 "mode":  "000755",
                                 "owner":  "root",
@@ -844,19 +844,19 @@
                                             "done\n\n",
                                             "date\n",
                                             "echo 'provisioning nginx-ingress'\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_1_nginx-ingress_ns-sa-cm.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_2_nginx-ingress_rbac.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_3_nginx-ingress_CustomResourceDefinition.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_4_nginx-ingress_DefaultSecrets.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_5_nginx-ingress_Deployment.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_6_nginx-ingress_Service.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/1_7_nginx-ingress_DaemonSet.yaml\n",
+                                            "kubectl apply -f /var/tmp/bigip-nginx-k8s/1_scripts/yaml/1_1_nginx-ingress_ns-sa-cm.yaml\n",
+                                            "kubectl apply -f /var/tmp/bigip-nginx-k8s/1_scripts/yaml/1_2_nginx-ingress_rbac.yaml\n",
+                                            "kubectl apply -f /var/tmp/bigip-nginx-k8s/1_scripts/yaml/1_3_nginx-ingress_CustomResourceDefinition.yaml\n",
+                                            "kubectl apply -f /var/tmp/bigip-nginx-k8s/1_scripts/yaml/1_4_nginx-ingress_DefaultSecrets.yaml\n",
+                                            "kubectl apply -f /var/tmp/bigip-nginx-k8s/1_scripts/yaml/1_5_nginx-ingress_Deployment.yaml\n",
+                                            "kubectl apply -f /var/tmp/bigip-nginx-k8s/1_scripts/yaml/1_6_nginx-ingress_Service.yaml\n",
+                                            "kubectl apply -f /var/tmp/bigip-nginx-k8s/1_scripts/yaml/1_7_nginx-ingress_DaemonSet.yaml\n",
                                             "date\n",
                                             "echo 'provisioning bigip-ingress'\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_1_bigip-ingress_ns.yaml\n",
+                                            "kubectl apply -f /var/tmp/bigip-nginx-k8s/1_scripts/yaml/2_1_bigip-ingress_ns.yaml\n",
                                             { "Fn::Sub": [ "kubectl create secret generic bigip-login --namespace bigip-ingress --from-literal=username=BigIPk8s --from-literal=password=${EC2BigIPPAYG}\n", { "EC2BigIPPAYG": {"Ref" : "EC2BigIPPAYG" }} ]},
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_2_bigip-ingress_rbac.yaml\n",
-                                            "kubectl apply -f /tmp/bigip-nginx-k8s/1_scripts/yaml/2_3_bigip-ingress_Deployment.yaml\n"
+                                            "kubectl apply -f /var/tmp/bigip-nginx-k8s/1_scripts/yaml/2_2_bigip-ingress_rbac.yaml\n",
+                                            "kubectl apply -f /var/tmp/bigip-nginx-k8s/1_scripts/yaml/2_3_bigip-ingress_Deployment.yaml\n"
                                         ]
                                     ]
                                 }
@@ -866,16 +866,16 @@
                     "Configure": {
                         "commands": {
                             "01_setup_host": {
-                                "command":  "/tmp/setup_host.sh  > /tmp/setup_host.log 2>&1  \n "
+                                "command":  "/var/tmp/setup_host.sh  > /var/tmp/setup_host.log 2>&1  \n "
                             },
                             "02_protect_stack":{
-                                "command": "sudo -u ec2-user /tmp/protect_stack.sh > /tmp/protect_stack.log 2>&1 \n"
+                                "command": "sudo -u ec2-user /var/tmp/protect_stack.sh > /var/tmp/protect_stack.log 2>&1 \n"
                             },
                             "03_provision_kops": {
-                                "command":  "sudo -u ec2-user /tmp/provision_kops.sh > /tmp/provision_kops.log 2>&1 \n "
+                                "command":  "sudo -u ec2-user /var/tmp/provision_kops.sh > /var/tmp/provision_kops.log 2>&1 \n "
                             },
                             "04_setup_k8s": {
-                                "command":  "sudo -u ec2-user /tmp/setup_k8s.sh > /tmp/setup_k8s.log 2>&1 \n"
+                                "command":  "sudo -u ec2-user /var/tmp/setup_k8s.sh > /var/tmp/setup_k8s.log 2>&1 \n"
                             }
                         }
                     }
@@ -1037,31 +1037,31 @@
                 "AWS::CloudFormation::Init": {
                     "config": {
                         "files": {
-                            "/tmp/firstrun.utils": {
+                            "/var/tmp/firstrun.utils": {
                                 "group":  "root",
                                 "mode":  "000755",
                                 "owner":  "root",
                                 "source":  "http://cdn.f5.com/product/templates/utils/firstrun.utils"
                             },
-                            "/tmp/bigip_utils.sh": {
+                            "/var/tmp/bigip_utils.sh": {
                                 "group":  "root",
                                 "mode":  "000755",
                                 "owner":  "root",
                                 "source":  "https://raw.githubusercontent.com/r-teller/bigip-nginx-k8s/master/1_scripts/shell/bigip_utils.sh"
                             },
-                            "/tmp/findPublicIP.sh": {
+                            "/var/tmp/findPublicIP.sh": {
                                 "group":  "root",
                                 "mode":  "000755",
                                 "owner":  "root",
                                 "source":  "https://raw.githubusercontent.com/r-teller/bigip-nginx-k8s/master/1_scripts/shell/findPublicIP.sh"
                             },
-                            "/tmp/firstrun.sh": {
+                            "/var/tmp/firstrun.sh": {
                                 "content": {
                                     "Fn::Join": [
                                         "",
                                         [
                                             "#!/bin/bash\n",
-                                            "FILE=/tmp/firstrun.log\n",
+                                            "FILE=/var/tmp/firstrun.log\n",
                                             "if [ ! -e $FILE ]\n",
                                             " then\n",
                                             "     touch $FILE\n",
@@ -1074,13 +1074,13 @@
                                             "exec 2>&1\n",
                                             "date\n",
                                             "echo 'Checking for bigip_utils.sh'\n",
-                                            "bigip_utils=`[ -f /tmp/bigip_utils.sh ] && echo true || echo false`\n",
+                                            "bigip_utils=`[ -f /var/tmp/bigip_utils.sh ] && echo true || echo false`\n",
                                             "while [[ ${bigip_utils}x != 'true'x ]]; do\n",
                                             "   echo -n '.'\n",
                                             "   sleep 5\n",
-                                            "   bigip_utils=`[ -f /tmp/bigip_utils.sh ] && echo true || echo false`\n",
+                                            "   bigip_utils=`[ -f /var/tmp/bigip_utils.sh ] && echo true || echo false`\n",
                                             "done\n",
-                                            ". /tmp/bigip_utils.sh\n",
+                                            ". /var/tmp/bigip_utils.sh\n",
                                             "date\n",
                                             "checkStatusnoret\n",
                                             "export Instance_ID=`curl http://169.254.169.254/latest/meta-data/instance-id`\n",
@@ -1144,10 +1144,10 @@
                                             "date\n",
                                             "echo 'Installing AS3 iAppLX'",
                                             "checkForAs3RPM\n",
-                                            "tmsh create mgmt shared iapp package-management-tasks operation INSTALL packageFilePath /tmp/f5-appsvcs.oarch.rpm\n",
+                                            "tmsh create mgmt shared iapp package-management-tasks operation INSTALL packageFilePath /var/tmp/f5-appsvcs.oarch.rpm\n",
                                             "echo 'Configuration of this device has completed\n'",
                                             "# typically want to remove firstrun.config after first boot\n",
-                                            "# rm /tmp/firstrun.config\n"
+                                            "# rm /var/tmp/firstrun.config\n"
                                         ]
                                     ]
                                 },
@@ -1155,16 +1155,16 @@
                                 "mode":  "000755",
                                 "owner":  "root"
                             },
-                            "/tmp/f5-appsvcs.oarch.rpm":{
+                            "/var/tmp/f5-appsvcs.oarch.rpm":{
                                 "group":  "root",
                                 "mode":  "000755",
                                 "owner":  "root",
-                                "source": "https://raw.githubusercontent.com/F5Networks/f5-appsvcs-extension/master/dist/latest/f5-appsvcs-3.13.0-3.noarch.rpm"
+                                "source": "https://github.com/F5Networks/f5-appsvcs-extension/releases/download/v3.13.1/f5-appsvcs-3.13.1-1.noarch.rpm"
                             }
                         },
                         "commands": {
                             "01-configure-Bigip": {
-                                "command":  "/tmp/firstrun.sh\n"
+                                "command":  "/var/tmp/firstrun.sh\n"
                             }
                         }
                     }
@@ -1353,7 +1353,7 @@
         },
         "DeleteSyntax": {
             "Description": "Use this command on the JumpHost to deprovision your stack",
-            "Value":"/tmp/deprovision_stack.sh"
+            "Value":"/var/tmp/deprovision_stack.sh"
         }
     }
 }
