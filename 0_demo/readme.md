@@ -9,7 +9,7 @@
 ## 2) Verify your Demo Environment
 ### 2_A) Verify JumpHost
 All steps in this session will assume you have successfully SSH to the JumpHost
-1. Check /tmp/setup_k8s.log for error messages
+1. Check /var/tmp/setup_k8s.log for error messages
 1. Verify you have the correct number of K8s nodes were created
     * kubectl get nodes
     ```bash
@@ -60,11 +60,11 @@ All steps in this session will assume you have successfully SSH to the JumpHost
 1. Example SSH Syntax for Big-IP
     * ssh -i PrivateKey.pem admin@ec2-54-183-91.us-west-1.compute.amazonaws.com
     * Note: if you receive an error similar to "It is recommended that your private key files are NOT accessible by others." you can fix this with 'chmod 700 PrivateKey.pem'
-1. Check /tmp/firstrun.log for error messages
+1. Check /var/tmp/firstrun.log for error messages
     ```bash
     ## Example steps
     admin@(ip-10-10-1-50)(cfg-sync Standalone)(Active)(/Common)(tmos)# bash
-    [admin@ip-10-10-1-50:Active:Standalone] ~ # cat /tmp/firstrun.log
+    [admin@ip-10-10-1-50:Active:Standalone] ~ # cat /var/tmp/firstrun.log
     Wed Jul 10 12:17:32 PDT 2019
     #....Truncated....
     ```
@@ -197,8 +197,8 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     }
     ```
 1. View public_ip mapped to Big-IP private_ip
-    * /tmp/findPublicIP.sh 10.10.2.60
-    * /tmp/findPublicIP.sh 10.10.2.70
+    * /var/tmp/findPublicIP.sh 10.10.2.60
+    * /var/tmp/findPublicIP.sh 10.10.2.70
     ```bash
     ## Example response
 
@@ -211,7 +211,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ```
 ## 3) Create Pool only Big-IP, K8s & F5 Container Ingress Services integration
 1. (From JumpHost) Create K8s ingress
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/1_1_create_bigip-ingress_Ingress.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/1_1_create_bigip-ingress_Ingress.yaml
 2. (From JumpHost) Verify K8s ingress is working as expected
     * kubectl get ingress -n nginx-ingress
     * kubectl get endpoints -n nginx-ingress
@@ -264,13 +264,13 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     </html>    
     ```
 5. Deploy demo-app-v1 to K8s
-    1. kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/2_1_deploy_demo-app-v1_Deployment.yaml
-    2. kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/2_2_deploy_demo-app-v1_Service.yaml
+    1. kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/2_1_deploy_demo-app-v1_Deployment.yaml
+    2. kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/2_2_deploy_demo-app-v1_Service.yaml
     ```bash
     ## Example response
 
     ### Deploy demo-app-v1
-    [ec2-user@ip-10-10-1-10 0_demo]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/2_1_deploy_demo-app-v1_Deployment.yaml
+    [ec2-user@ip-10-10-1-10 0_demo]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/2_1_deploy_demo-app-v1_Deployment.yaml
     deployment.apps/financial-reporting-v1 created
 
     ### View pods deployed from 2_1_deploy_demo-app-v1_Deployment.yaml
@@ -283,7 +283,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     curl http://10.10.3.246
 
     ### Deploy demo-app-v1 service
-    [ec2-user@ip-10-10-1-10 0_demo]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/2_2_deploy_demo-app-v1_Service.yaml
+    [ec2-user@ip-10-10-1-10 0_demo]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/2_2_deploy_demo-app-v1_Service.yaml
     service/financial-reporting-v1-svc created
 
     ### View demo-app-v1 service
@@ -299,10 +299,10 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     financial-reporting-v1-svc   10.10.3.19:80,10.10.3.246:80   10m    
     ```
 6. View nginx-ingress virtualServer yaml
-    * cat /tmp/bigip-nginx-k8s/0_demo/2_3_create_nginx-ingress_VirtualServer.yaml
+    * cat /var/tmp/bigip-nginx-k8s/0_demo/2_3_create_nginx-ingress_VirtualServer.yaml
     * Notice: The value for the 'host' field, the virtualServer only forwards traffic for defined Fully Qualified Domain Names
     ```bash
-    [ec2-user@ip-10-10-1-10 0_demo]$ cat /tmp/bigip-nginx-k8s/0_demo/2_3_create_nginx-ingress_VirtualServer.yaml
+    [ec2-user@ip-10-10-1-10 0_demo]$ cat /var/tmp/bigip-nginx-k8s/0_demo/2_3_create_nginx-ingress_VirtualServer.yaml
     apiVersion: k8s.nginx.org/v1alpha1
     kind: VirtualServer
     metadata:
@@ -318,11 +318,11 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         upstream: financial-reporting-v1
     ```
 7. Deploy nginx-ingress virtualServer to route traffic to demo-app-v1
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/2_3_create_nginx-ingress_VirtualServer.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/2_3_create_nginx-ingress_VirtualServer.yaml
     ```bash
     ## Example response
 
-    [ec2-user@ip-10-10-1-10 0_demo]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/2_3_create_nginx-ingress_VirtualServer.yaml
+    [ec2-user@ip-10-10-1-10 0_demo]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/2_3_create_nginx-ingress_VirtualServer.yaml
     virtualserver.k8s.nginx.org/financial-reporting created
     ```
 8. Curl public_ip used in step4 and include Host Header,
@@ -346,11 +346,11 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ![Example Demo-App-V1](../2_images/Example_demo-app-v1.png)
 ## 4) Version our demo-app
 1. Deploy V2 version up the demo-app
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/3_1_deploy_demo-app-v2_Deployment.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/3_1_deploy_demo-app-v2_Deployment.yaml
     ```bash
     ## Example response
 
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/3_1_deploy_demo-app-v2_Deployment.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/3_1_deploy_demo-app-v2_Deployment.yaml
     deployment.apps/financial-reporting-v2 created
 
     ## Notice we now have v1 and v2 pods deployed in our environment
@@ -362,11 +362,11 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     financial-reporting-v2-74f6dd765d-zv2bz   1/1     Running   0          44s   10.10.3.100   ip-10-10-3-192.us-west-1.compute.internal   <none>
     ```
 2. Deploy the V2 Service
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/3_2_create_demo-app-v2_Service.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/3_2_create_demo-app-v2_Service.yaml
     ```bash
     ## Example response
 
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/3_1_deploy_demo-app-v2_Deployment.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/3_1_deploy_demo-app-v2_Deployment.yaml
     deployment.apps/financial-reporting-v2 created
 
     [ec2-user@ip-10-10-1-10 ~]$ kubectl get svc financial-reporting-v2-svc
@@ -378,13 +378,13 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     financial-reporting-v2-svc   10.10.3.100:80,10.10.3.38:80   95s
     ```
 3. Update nginx-ingress virtualServer to split traffic between the v1 and v2 version of our demo-app
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/3_3_update_nginx-ingress_VirtualServer.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/3_3_update_nginx-ingress_VirtualServer.yaml
     * Notice: The weight for v1 is 80% and 20% for v2
     ```bash
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/3_3_update_nginx-ingress_VirtualServer.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/3_3_update_nginx-ingress_VirtualServer.yaml
     virtualserver.k8s.nginx.org/financial-reporting configured
 
-    [ec2-user@ip-10-10-1-10 ~]$ cat /tmp/bigip-nginx-k8s/0_demo/3_3_update_nginx-ingress_VirtualServer.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ cat /var/tmp/bigip-nginx-k8s/0_demo/3_3_update_nginx-ingress_VirtualServer.yaml
     apiVersion: k8s.nginx.org/v1alpha1
     kind: VirtualServer
     metadata:
@@ -409,11 +409,11 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ![Example Demo-App-V2](../2_images/Example_demo-app-v2.png)
 ## 5) Productionize and Scale our demo-app-v2
 1. Scale the V2 deployment
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/4_1_scale_demo_app-v2_Deployment.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/4_1_scale_demo_app-v2_Deployment.yaml
     ```bash
     ## Example response
 
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/4_1_scale_demo_app-v2_Deployment.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/4_1_scale_demo_app-v2_Deployment.yaml
 
     ## Notice we now have 6 instance of our v2 app
     [ec2-user@ip-10-10-1-10 ~]$ kubectl get pods -o wide
@@ -428,14 +428,14 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     financial-reporting-v2-74f6dd765d-xhnjw   1/1     Running   0          75s   10.10.3.38    ip-10-10-3-192.us-west-1.compute.internal   <none>
     ```
 2. Productionize our v2 app by removing v1 from our nginx-ingress virtualServer
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/4_2_remove-v1_nginx-ingress_VirtualServer.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/4_2_remove-v1_nginx-ingress_VirtualServer.yaml
     ```bash
     ## Example response
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/4_2_remove-v1_nginx-ingress_VirtualServer.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/4_2_remove-v1_nginx-ingress_VirtualServer.yaml
     virtualserver.k8s.nginx.org/financial-reporting configured
 
     ## Notice the v1 service was removed and we no longer have a weight applied
-    [ec2-user@ip-10-10-1-10 ~]$ cat /tmp/bigip-nginx-k8s/0_demo/4_2_remove-v1_nginx-ingress_VirtualServer.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ cat /var/tmp/bigip-nginx-k8s/0_demo/4_2_remove-v1_nginx-ingress_VirtualServer.yaml
     apiVersion: k8s.nginx.org/v1alpha1
     kind: VirtualServer
     metadata:
@@ -453,10 +453,10 @@ All steps in this session will assume you have successfully SSH to the JumpHost
 
 ## 5) Create Big-IP, K8s & F5 Container Ingress Services integration using AS3
 1. (From JumpHost) Deploy service AS3 will use to map to the nginx-ingress-controller pods
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/5_1_create_bigip-ingress_as3_Basic_Service.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/5_1_create_bigip-ingress_as3_Basic_Service.yaml
     ```bash
     ## Example response
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/5_1_create_bigip-ingress_as3_Basic_Service.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/5_1_create_bigip-ingress_as3_Basic_Service.yaml
     service/f5-as3-basic-service created
 
     [ec2-user@ip-10-10-1-10 ~]$ kubectl get svc -n nginx-ingress f5-as3-basic-service
@@ -464,10 +464,10 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     f5-as3-basic-service   NodePort   10.10.6.126   <none>        80:32147/TCP   16s
     ```
 1. (From JumpHost) Apply AS3 Configmap
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/5_2_create_bigip-ingress_as3_Basic_ConfigMap.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/5_2_create_bigip-ingress_as3_Basic_ConfigMap.yaml
     ```bash
     ## Example response
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/5_2_create_bigip-ingress_as3_Basic_ConfigMap.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/5_2_create_bigip-ingress_as3_Basic_ConfigMap.yaml
     configmap/f5-as3-configmap created
     ```
     * Note: Applying the AS3 configmap, will create the required virtual and pool on the Big-IP
@@ -551,24 +551,24 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ```
 
 ## 6) Scale nginx-ingress-controllers
-1. (From JumpHost) Using /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh modify KOPs worker node from 1 to 3
-    * sudo chown ec2-user:ec2-user /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
-    * chmod +x /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
-    * /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
+1. (From JumpHost) Using /var/tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh modify KOPs worker node from 1 to 3
+    * sudo chown ec2-user:ec2-user /var/tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
+    * chmod +x /var/tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
+    * /var/tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
     ```bash
     ## Example response
 
-    [ec2-user@ip-10-10-1-10 0_demo]$ cat /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
+    [ec2-user@ip-10-10-1-10 0_demo]$ cat /var/tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
     #!/bin/bash
 
     kops get ig nodes -o json | jq '.spec.minSize=3|.spec.maxSize=3' | kops replace -f /dev/stdin
     kops update cluster --yes
 
-    [ec2-user@ip-10-10-1-10 0_demo]$ sudo chown ec2-user:ec2-user /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh  
+    [ec2-user@ip-10-10-1-10 0_demo]$ sudo chown ec2-user:ec2-user /var/tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh  
 
-    [ec2-user@ip-10-10-1-10 0_demo]$ chmod +x /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
+    [ec2-user@ip-10-10-1-10 0_demo]$ chmod +x /var/tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
 
-    [ec2-user@ip-10-10-1-10 0_demo]$ /tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
+    [ec2-user@ip-10-10-1-10 0_demo]$ /var/tmp/bigip-nginx-k8s/0_demo/6_1_scale_k8s_nodes.sh
     Using cluster from kubectl context: bettertogetherdemo.k8s.local
 
     Using cluster from kubectl context: bettertogetherdemo.k8s.local
@@ -659,11 +659,11 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ```
 ## 7) AS3 Example adding Application Security and HTTPS
 1. (From JumpHost) Deploy new K8s service that will be used to enable WAF through AS3, similar to service deployed earlier in step 5.1
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/7_1_create_bigip-ingress_as3_Security_Service.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/7_1_create_bigip-ingress_as3_Security_Service.yaml
     ```bash
     ## Example response
 
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/7_1_create_bigip-ingress_as3_Security_Service.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/7_1_create_bigip-ingress_as3_Security_Service.yaml
     service/f5-as3-security-service created
 
     [ec2-user@ip-10-10-1-10 ~]$ kubectl get svc -n nginx-ingress f5-as3-security-service
@@ -672,11 +672,11 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ```
 
 1. (From JumpHost) Apply updated settings to the AS3 configmap deployed earlier in step 5.2
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/7_2_update_bigip-ingress_as3_Basic+Security_ConfigMap.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/7_2_update_bigip-ingress_as3_Basic+Security_ConfigMap.yaml
     ```bash
     ## Example response
 
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/7_2_update_bigip-ingress_as3_Basic+Security_ConfigMap.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/7_2_update_bigip-ingress_as3_Basic+Security_ConfigMap.yaml
     configmap/f5-as3-configmap configured
     ```
     * Note: Applying the AS3 configmap, this will create the required virtual and pool on the Big-IP
@@ -776,11 +776,11 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     * Notice: Now that a security policy is applied to the virtualServer curl requests are blocked and a support id is returned instead
 
 1. (From JumpHost) Apply updated settings to the AS3 configmap deployed earlier to add HTTPS support
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/7_3_update_bigip-ingress_as3_TLS+Basic+Security_ConfigMap.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/7_3_update_bigip-ingress_as3_TLS+Basic+Security_ConfigMap.yaml
     ```bash
     ## Example response
 
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/7_3_update_bigip-ingress_as3_TLS+Basic+Security_ConfigMap.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/7_3_update_bigip-ingress_as3_TLS+Basic+Security_ConfigMap.yaml
     configmap/f5-as3-configmap configured
     ```
     * Note: Applying the AS3 configmap, this will create the required virtual and pool on the Big-IP
@@ -889,11 +889,11 @@ All steps in this session will assume you have successfully SSH to the JumpHost
 
 ## 8) Remove AS3 example applications from BIG-IP
 1. (From JumpHost) Apply configmap with empty spec
-    * kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
+    * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
     ```bash
     ## Example response
 
-    [ec2-user@ip-10-10-1-10 ~]$ cat /tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ cat /var/tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
     kind: ConfigMap
     apiVersion: v1
     metadata:
@@ -918,16 +918,16 @@ All steps in this session will assume you have successfully SSH to the JumpHost
           }
         }
 
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
     configmap/f5-as3-configmap configured
     ```
     * Note: Applying the AS3 configmap, this will delete the virtual and pool objects created on the Big-IP earlier.
 
 2. (From JumpHost) Delete the configmap object from K8s
-    * kubectl delete -f /tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
+    * kubectl delete -f /var/tmp/bigip-nginx-k8s/0_demo/8_1_delete_bigip-ingress_as3_ConfigMap.yaml
     ```bash
     ## Example response
 
-    [ec2-user@ip-10-10-1-10 ~]$ kubectl delete -f /tmp/bigip-nginx-k8s/0_demo/9_1_delete_bigip-ingress_as3_ConfigMap.yaml
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl delete -f /var/tmp/bigip-nginx-k8s/0_demo/9_1_delete_bigip-ingress_as3_ConfigMap.yaml
     kind: ConfigMapconfigmap "f5-as3-configmap" deleted
     ```
