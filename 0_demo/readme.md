@@ -315,7 +315,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         port: 80
       routes:
       - path: /
-        upstream: financial-reporting-v1
+        pass: financial-reporting-v1
     ```
 7. Deploy nginx-ingress virtualServer to route traffic to demo-app-v1
     * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/2_3_create_nginx-ingress_VirtualServer.yaml
@@ -402,9 +402,11 @@ All steps in this session will assume you have successfully SSH to the JumpHost
       - path: /
         splits:
         - weight: 80
-          upstream: financial-reporting-v1
+          action:
+            pass: financial-reporting-v1
         - weight: 20
-          upstream: financial-reporting-v2
+          action:
+            pass: financial-reporting-v2
     ```
     ![Example Demo-App-V2](../2_images/Example_demo-app-v2.png)
 ## 5) Productionize and Scale our demo-app-v2
@@ -448,7 +450,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         port: 80
       routes:
       - path: /
-        upstream: financial-reporting-v2
+        pass: financial-reporting-v2
     ```
 
 ## 5) Create Big-IP, K8s & F5 Container Ingress Services integration using AS3
