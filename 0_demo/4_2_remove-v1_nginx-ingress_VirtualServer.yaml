@@ -10,4 +10,4 @@ spec:
     port: 80
   routes:
   - path: /
-    upstream: financial-reporting-v2
+    pass: financial-reporting-v2
