@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-ingress-controller-b
+  namespace: nginx-ingress
+spec:
+  selector:
+    matchLabels:
+      app: nginx-ingress-controller-b
+  template:
+    metadata:
+      labels:
+        app: nginx-ingress-controller-b
+    spec:
+      serviceAccountName: nginx-ingress
+      containers:
+      - image: 10.10.3.20/nginx-plus-ingress:edge
+        imagePullPolicy: Always
+        name: nginx-ingress-controller-b
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: stubstatus
+          containerPort: 8080
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        args:
+          - -nginx-plus
+          - -nginx-configmaps=$(POD_NAMESPACE)/nginx-config
+          - -default-server-tls-secret=$(POD_NAMESPACE)/default-server-secret
+          - -health-status
+          - -nginx-status-allow-cidrs=0.0.0.0/0
+          - -enable-custom-resources
+         #- -v=3 # Enables extensive logging. Useful for troubleshooting.
+         #- -report-ingress-status
+         #- -external-service=nginx-ingress
+         #- -enable-leader-election
+         #- -enable-prometheus-metrics
