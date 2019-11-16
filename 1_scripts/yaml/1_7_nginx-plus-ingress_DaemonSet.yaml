@@ -13,6 +13,8 @@ spec:
         app: nginx-ingress-controller-b
     spec:
       serviceAccountName: nginx-ingress
+      imagePullSecrets:
+      - name: regcred
       containers:
       - image: 10.10.3.20/nginx-plus-ingress:edge
         imagePullPolicy: Always
