@@ -1447,13 +1447,22 @@
                                             "EOF\n",
                                             "tmsh load /sys config\n",
                                             "date\n",
-                                            "echo 'create virtual-servers'\n",
+                                            "echo 'create https virtual-servers'\n",
                                             { "Fn::Sub": [
                                                 "tmsh create ltm virtual k8s_vip_https destination ${Destination_IP}:443  profiles add { http {} clientssl { context clientside } } rules {/Common/rule_nginxIngressPool  } vlans add { external } vlans-enabled source-address-translation { type automap }\n",
                                                 { "Destination_IP": {
                                                     "Fn::Select" : [2, {"Fn::GetAtt" : [ "ENAPublicBigIP02" , "SecondaryPrivateIpAddresses" ]}]
                                                     } }]},
                                             "date\n",
+                                            "## If nginx-plus-ingress is licensed create 8080 virtual-server ##\n",
+                                            { "Fn::Sub": [ "if ${RepoCredIsNotEmpty}; then\n", { "RepoCredIsNotEmpty" : { "Fn::If": [ "RepoCredIsNotEmpty", "true", "false" ] } } ] },
+                                                "echo 'create 8080 virtual-servers'\n",
+                                                { "Fn::Sub": [
+                                                    "tmsh create ltm virtual k8s_vip_8080 destination ${Destination_IP}:8080  profiles add { http {}  } rules {/Common/rule_nginxIngressPool  } vlans add { external } vlans-enabled translate-port disabled source-address-translation { type automap }\n",
+                                                    { "Destination_IP": {
+                                                        "Fn::Select" : [2, {"Fn::GetAtt" : [ "ENAPublicBigIP02" , "SecondaryPrivateIpAddresses" ]}]
+                                                        } }]},
+                                            "fi\n",
                                             "echo 'Installing AS3 iAppLX'",
                                             "checkForAs3RPM\n",
                                             "tmsh create mgmt shared iapp package-management-tasks operation INSTALL packageFilePath /var/tmp/f5-appsvcs.oarch.rpm\n",

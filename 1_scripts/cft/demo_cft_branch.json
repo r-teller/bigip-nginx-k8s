@@ -1458,7 +1458,7 @@
                                             { "Fn::Sub": [ "if ${RepoCredIsNotEmpty}; then\n", { "RepoCredIsNotEmpty" : { "Fn::If": [ "RepoCredIsNotEmpty", "true", "false" ] } } ] },
                                                 "echo 'create 8080 virtual-servers'\n",
                                                 { "Fn::Sub": [
-                                                    "tmsh create ltm virtual k8s_vip_8080 destination ${Destination_IP}:8080  profiles add { http {}  } rules {/Common/rule_nginxIngressPool  } vlans add { external } vlans-enabled source-address-translation { type automap }\n",
+                                                    "tmsh create ltm virtual k8s_vip_8080 destination ${Destination_IP}:8080  profiles add { http {}  } rules {/Common/rule_nginxIngressPool  } vlans add { external } vlans-enabled translate-port disabled source-address-translation { type automap }\n",
                                                     { "Destination_IP": {
                                                         "Fn::Select" : [2, {"Fn::GetAtt" : [ "ENAPublicBigIP02" , "SecondaryPrivateIpAddresses" ]}]
                                                         } }]},
