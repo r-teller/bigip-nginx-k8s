@@ -805,7 +805,7 @@
                                             "mv ./kubectl ./kops /usr/bin/\n",
                                             "\n### git bigip-nginx-k8s repo\n",
                                             "mkdir /var/tmp/bigip-nginx-k8s\n",
-                                            "git clone https://github.com/r-teller/bigip-nginx-k8s /var/tmp/bigip-nginx-k8s\n",
+                                            "git clone https://github.com/r-teller/bigip-nginx-k8s --branch '2.0-(NGINX+)' /var/tmp/bigip-nginx-k8s\n",
                                             "\n### Configure AWSCLI\n",
                                             { "Fn::Sub": [ "echo export AWS_REGION=${AWS_REGION} >>  /etc/profile.d/88-all-profiles.sh\n", { "AWS_REGION": {"Ref" : "AWS::Region" }} ]},
                                             { "Fn::Sub": [ "echo export AWS_VPC_ID=${AWS_VPC_ID} >>  /etc/profile.d/88-all-profiles.sh\n", { "AWS_VPC_ID": {"Ref" : "VPC" }} ]},

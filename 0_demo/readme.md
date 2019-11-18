@@ -1,16 +1,17 @@
 ## 1) Deploy the CFT
 1. Deploy the CFT and provide an EnvironmentName and Select your SSH-KeyPair
     * The EnvironmentName must be lowercase alpha and is used for naming of all created objects
-![Example CFT Input](../2_images/Example_CFT_Input.png)
+    * Including the NGINX repository certificate and key is optional but if provided will deploy nginx-plus-ingress controller instead of the open source version
+![Example CFT Input](../2_images/Example_CFT_Input_v2.png)
 1. Once your environment is created you can SSH into the JumpHost and Big-IP to start exploring the deployed infrastructure
     * As the JumpHost is provisioned it establishes environment variables, if you SSH in before they are populated you may have to exit your session and restart it
 ![Example CFT Output](../2_images/Example_CFT_Output.png)
 
 ## 2) Verify your Demo Environment
 ### 2_A) Verify JumpHost
-All steps in this session will assume you have successfully SSH to the JumpHost
-1. Check /var/tmp/setup_k8s.log for error messages
-1. Verify you have the correct number of K8s nodes were created
+* All steps in this session will assume you have successfully SSH to the JumpHost
+1. (From JumpHost) Check /var/tmp/setup_k8s.log for error messages
+1. (From JumpHost) Verify you have the correct number of K8s nodes were created
     * kubectl get nodes
     ```bash
     ## Example response
@@ -19,7 +20,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     ip-10-10-3-192.us-west-1.compute.internal   Ready    node     11m   v1.12.8
     ip-10-10-3-211.us-west-1.compute.internal   Ready    master   12m   v1.12.8
     ```
-1. Verify the correct number of namespaces were created
+1. (From JumpHost) Verify the correct number of namespaces were created
     * kubectl get namespaces
     ```bash
     ## Example response
@@ -31,7 +32,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     kube-system     Active   14m
     nginx-ingress   Active   13m
     ```
-1. Verify correct number of pods exist in the nginx-ingress namespace
+1. (From JumpHost) Verify correct number of pods exist in the nginx-ingress namespace
     * kubectl get pods -n nginx-ingress
     ```bash
     ## Example response
@@ -40,10 +41,10 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     nginx-ingress-controller-a-7855674844-z6fqj   1/1     Running   0          6m2s
     nginx-ingress-controller-b-jwqkj              1/1     Running   0          5m3s
     ```
-1. If any of the pods in the nginx-ingress namespace are in a state OTHER than Running you can check the log for error messages
+1. (From JumpHost) If any of the pods in the nginx-ingress namespace are in a state OTHER than Running you can check the log for error messages
     * kubectl logs -n nginx-ingress nginx-ingress-controller-b-jwqkj
 
-1. Verify correct number of pods exist in the bigip-ingress namespace
+1. (From JumpHost) Verify correct number of pods exist in the bigip-ingress namespace
     * kubectl get pods -n bigip-ingress
     ```bash
     ## Example response
@@ -51,16 +52,24 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     NAME                                         READY   STATUS    RESTARTS   AGE
     k8s-bigip-ctlr-deployment-5647678499-pkzbc   1/1     Running   0          6m32s
     ```
-1. If any of the pods in the bigip-ingress namespace are in a state OTHER than Running you can check the log for error messages
+1. (From JumpHost) If any of the pods in the bigip-ingress namespace are in a state OTHER than Running you can check the log for error messages
     * kubectl logs -n bigip-ingress k8s-bigip-ctlr-deployment-5647678499-pkzbc
+
+1. (From JumpHost)(NGINX+ Only) Verify the nginx-plus-ingress controller is available in our private repo
+    * curl -k https://registry:registry@10.10.3.20/v2/_catalog
+    ```bash
+    ## Example response
+    [ec2-user@ip-10-10-1-10 ~]$ curl -k https://registry:registry@10.10.3.20/v2/_catalog
+    {"repositories":["nginx-plus-ingress"]}
+    ```
 
 ### 2_B) Verify Big-IP
 * All steps in this session will assume you have successfully SSH to the Big-Ip and exited TMSH by typing bash
 * The default admin password for the GUI is the AWS instance-id
-1. Example SSH Syntax for Big-IP
+1. (From Big-IP) Example SSH Syntax for Big-IP
     * ssh -i PrivateKey.pem admin@ec2-54-183-91.us-west-1.compute.amazonaws.com
     * Note: if you receive an error similar to "It is recommended that your private key files are NOT accessible by others." you can fix this with 'chmod 700 PrivateKey.pem'
-1. Check /var/tmp/firstrun.log for error messages
+1. (From Big-IP) Check /var/tmp/firstrun.log for error messages
     ```bash
     ## Example steps
     admin@(ip-10-10-1-50)(cfg-sync Standalone)(Active)(/Common)(tmos)# bash
@@ -68,7 +77,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     Wed Jul 10 12:17:32 PDT 2019
     #....Truncated....
     ```
-1. Verify service account was created
+1. (From Big-IP) Verify service account was created
     * tmsh list auth user BigIPk8s
     ```bash
     ## Example response
@@ -85,7 +94,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         shell none
     }
     ```
-1. Verify correct number of Self_IP were created
+1. (From Big-IP) Verify correct number of Self_IP were created
     * tmsh list net self
     ```bash
     ## Example response
@@ -121,7 +130,7 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         vlan external
     }
     ```
-1. Verify AS3 iAppLX was installed
+1. (From Big-IP) Verify AS3 iAppLX was installed
     * tmsh list mgmt shared iapp installed-packages
     ```bash
     ## Example response
@@ -159,14 +168,14 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         version "1.1.0"
     }
     ```
-1. Verify nginx partition was created
+1. (From Big-IP) Verify nginx partition was created
     * tmsh list auth partition nginx    
     ```bash
     ## Example response
     [admin@ip-10-10-1-50:Active:Standalone] ~ # tmsh list auth partition nginx
     auth partition nginx { }
     ```
-1. Verify example virtual-server was created
+1. (From Big-IP) Verify example virtual-server was created
     * tmsh list ltm virtual k8s_vip_https
     ```bash
     ## Example response
@@ -175,7 +184,6 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         creation-time 2019-07-10:12:20:23
         destination 10.10.2.60:https
         ip-protocol tcp
-        last-modified-time 2019-07-10:12:20:23
         mask 255.255.255.255
         profiles {
             clientssl {
@@ -196,7 +204,37 @@ All steps in this session will assume you have successfully SSH to the JumpHost
         vs-index 2
     }
     ```
-1. View public_ip mapped to Big-IP private_ip
+1. (From Big-IP)(NGINX+ Only) Verify nginx-plus-ingress dashboard was exposed  
+    * tmsh list ltm virtual k8s_vip_8080
+    ```bash
+    ## Example response
+    [admin@ip-10-10-1-50:Active:Standalone] ~ # tmsh list ltm virtual k8s_vip_8080
+    ltm virtual k8s_vip_8080 {
+        creation-time 2019-11-18:01:26:08
+        destination 10.10.2.60:webcache
+        ip-protocol tcp
+        mask 255.255.255.255
+        profiles {
+            http { }
+            tcp { }
+        }
+        rules {
+            rule_nginxIngressPool
+        }
+        source 0.0.0.0/0
+        source-address-translation {
+            type automap
+        }
+        translate-address enabled
+        translate-port disabled
+        vlans {
+            external
+        }
+        vlans-enabled
+        vs-index 3
+    }
+    ```  
+1. (From Big-IP) View public_ip mapped to Big-IP private_ip
     * /var/tmp/findPublicIP.sh 10.10.2.60
     * /var/tmp/findPublicIP.sh 10.10.2.70
     ```bash
@@ -209,12 +247,43 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     [admin@ip-10-10-1-50:Active:Standalone] tmp # ./findPublicIP.sh 10.10.2.70
     Private IP <10.10.2.70> maps to Public IP <54.183.71.63>
     ```
+
+### 2_C) Verify DockerHost
+* All steps in this session will assume you have successfully SSH to the JumpHost
+* The DockerHost is not exposed to the internet, to access it you will need to SSH into the JumpHost first and then use your private key
+1. (From JumpHost) ssh to the Dockerhost
+    * ssh -i [private_key] ubuntu@10.10.3.20
+    * (Note) when the ssh-key is uploaded to the chump host you will need to modify the permissions on it before you can use it to SSH
+1. (From JumpHost) Check logs files in /var/tmp for error messages
+    * /var/tmp/setup_docker_repo.log - log output of docker registry deployment
+    * /var/tmp/build_nginx_plus_ingress.log - log output for nginx-plus-ingress build
+    * /var/tmp/format_pem_files.log - log output of formatting cert/key provided through CFT
+1. (From Dockerhost) verify registry container is running
+    * sudo docker ps
+    ```bash
+    ## Example response
+
+    ubuntu@ip-10-10-3-20:~$ sudo docker ps
+    CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                            NAMES
+    0578e6b52ab8        registry:2          "/entrypoint.sh /etc…"   7 hours ago         Up 7 hours          0.0.0.0:443->443/tcp, 5000/tcp   registry
+    ```
+1. (From Dockerhost) verify nginx-plus-ingress controller image was built with docker
+    * sudo docker image ls 10.10.3.20/nginx-plus-ingress
+    ```bash
+    ## Example response
+
+    ubuntu@ip-10-10-3-20:~$ sudo docker image ls 10.10.3.20/nginx-plus-ingress
+    REPOSITORY                      TAG                 IMAGE ID            CREATED             SIZE
+    10.10.3.20/nginx-plus-ingress   edge                184e24b6413f        9 hours ago         114MB
+    ```
+
 ## 3) Create Pool only Big-IP, K8s & F5 Container Ingress Services integration
 1. (From JumpHost) Create K8s ingress
     * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/1_1_create_bigip-ingress_Ingress.yaml
 2. (From JumpHost) Verify K8s ingress is working as expected
     * kubectl get ingress -n nginx-ingress
     * kubectl get endpoints -n nginx-ingress
+    * kubectl get pods -n nginx-ingress -o wide
     ```bash
     ## Example response
 
@@ -229,7 +298,65 @@ All steps in this session will assume you have successfully SSH to the JumpHost
     nginx-ingress-controller-a-7855674844-z6fqj   1/1     Running   0          77m   10.10.3.105   ip-10-10-3-192.us-west-1.compute.internal   <none>
     nginx-ingress-controller-b-jwqkj              1/1     Running   0          76m   10.10.3.46    ip-10-10-3-192.us-west-1.compute.internal   <none>    
     ```
-3. (From Big-IP) verify nginx-ingress pool was created
+1. (From JumpHost)(NGINX+ Only) Verify NGINX+ was deployed instead of OSS for ingress-controller
+    * kubectl describe pods -n nginx-ingress -l app=nginx-ingress-controller-a
+    ```bash
+    ## Example response
+
+    [ec2-user@ip-10-10-1-10 ~]$ kubectl describe pods -n nginx-ingress -l app=nginx-ingress-controller-a
+    Name:           nginx-ingress-controller-a-6fff97b8dd-mxpnl
+    Namespace:      nginx-ingress
+    Priority:       0
+    Node:           ip-10-10-3-38.us-west-1.compute.internal/10.10.3.38
+    Start Time:     Mon, 18 Nov 2019 09:27:01 +0000
+    Labels:         app=nginx-ingress-controller-a
+                    pod-template-hash=6fff97b8dd
+    Annotations:    <none>
+    Status:         Running
+    IP:             10.10.3.251
+    IPs:            <none>
+    Controlled By:  ReplicaSet/nginx-ingress-controller-a-6fff97b8dd
+    Containers:
+      nginx-ingress-controller-a:
+        Container ID:  docker://697d8d204bef434ecc5d421a94dc5239a86dfc372fbebd889754e9f289b3f849
+        Image:         10.10.3.20/nginx-plus-ingress:edge
+        Image ID:      docker-pullable://10.10.3.20/nginx-plus-ingress@sha256:26b8cb1063886e93df97a142712ee5d98a1730833f1afd7a64fdb6e7fc3ac782
+        Ports:         80/TCP, 443/TCP, 8080/TCP
+        Host Ports:    0/TCP, 0/TCP, 0/TCP
+        Args:
+          -nginx-plus
+          -nginx-configmaps=$(POD_NAMESPACE)/nginx-config
+          -default-server-tls-secret=$(POD_NAMESPACE)/default-server-secret
+          -health-status
+          -nginx-status-allow-cidrs=0.0.0.0/0
+          -enable-custom-resources
+        State:          Running
+          Started:      Mon, 18 Nov 2019 09:27:19 +0000
+        Ready:          True
+        Restart Count:  0
+        Environment:
+          POD_NAMESPACE:  nginx-ingress (v1:metadata.namespace)
+          POD_NAME:       nginx-ingress-controller-a-6fff97b8dd-mxpnl (v1:metadata.name)
+        Mounts:
+          /var/run/secrets/kubernetes.io/serviceaccount from nginx-ingress-token-4hd89 (ro)
+    Conditions:
+      Type              Status
+      Initialized       True
+      Ready             True
+      ContainersReady   True
+      PodScheduled      True
+    Volumes:
+      nginx-ingress-token-4hd89:
+        Type:        Secret (a volume populated by a Secret)
+        SecretName:  nginx-ingress-token-4hd89
+        Optional:    false
+    QoS Class:       BestEffort
+    Node-Selectors:  <none>
+    Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                     node.kubernetes.io/unreachable:NoExecute for 300s
+    Events:          <none>
+    ```
+1. (From Big-IP) Verify nginx-ingress pool was created
     * tmsh list ltm pool /nginx/ingress_nginx-ingress_nginx-ingress-controller-a
     ```bash
     ## Example response
@@ -409,6 +536,9 @@ All steps in this session will assume you have successfully SSH to the JumpHost
             pass: financial-reporting-v2
     ```
     ![Example Demo-App-V2](../2_images/Example_demo-app-v2.png)
+1. (NGINX+ Only) View the nginx-ingress dashboard by browsing to the public_ip used in step4 on port 8080
+    * example url based on step 4 would be http://54.241.193.4:8080
+    ![Example NGINX-Ingress-Dashboard](../2_images/Example_nginx_plus_ingress_dashboard.png)
 ## 5) Productionize and Scale our demo-app-v2
 1. Scale the V2 deployment
     * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/4_1_scale_demo_app-v2_Deployment.yaml
