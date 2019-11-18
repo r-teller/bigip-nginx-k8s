@@ -257,7 +257,7 @@
 1. (From JumpHost) Check logs files in /var/tmp for error messages
     * /var/tmp/setup_docker_repo.log - log output of docker registry deployment
     * /var/tmp/build_nginx_plus_ingress.log - log output for nginx-plus-ingress build
-    * /var/tmp/format_pem_files.log - log output of formating cert/key provided through CFT
+    * /var/tmp/format_pem_files.log - log output of formatting cert/key provided through CFT
 1. (From Dockerhost) verify registry container is running
     * sudo docker ps
     ```bash
@@ -536,6 +536,9 @@
             pass: financial-reporting-v2
     ```
     ![Example Demo-App-V2](../2_images/Example_demo-app-v2.png)
+1. (NGINX+ Only) View the nginx-ingress dashboard by browsing to the public_ip used in step4 on port 8080
+    * example url based on step 4 would be http://54.241.193.4:8080
+    ![Example NGINX-Ingress-Dashboard](../2_images/Example_nginx_plus_ingress_dashboard.png)
 ## 5) Productionize and Scale our demo-app-v2
 1. Scale the V2 deployment
     * kubectl apply -f /var/tmp/bigip-nginx-k8s/0_demo/4_1_scale_demo_app-v2_Deployment.yaml
