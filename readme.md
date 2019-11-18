@@ -48,6 +48,7 @@ When the CFT is deployed it will create everything needed to complete the demo i
     - EC2 Instances
         - JumpHost - T3.Medium AMI built from AWS AWSLinux2, cloudinit is used to install all software dependencies and deploy K8s
         - Big-IP - T2.Large AMI, cloudinit is used to establish initial configuration
+        - DockerHost - T3.Medium AMI built from Ubuntu 18.04, cloudinit is used to setup a docker registry and build nginx-plus-ingress if licensed
     - Elastic_IPs - are allocated for the following resources
         - BIG-IP Mgmt interface
         - BIG-IP VirtualServer Deployment Example A
@@ -67,8 +68,6 @@ When the CFT is deployed it will create everything needed to complete the demo i
                 - Allow SSH from 0.0.0.0/0
                 - Allow HTTPS from 0.0.0.0/0
         - Big-IP Public Interface (Eth1)
-            - Security Group:
-                - Allow TCP/80,443,8080,8443 from 0.0.0.0/0
             - Primary Address: 10.10.2.50
             - Secondary Address: 10.10.2.51
             - Secondary Address: 10.10.2.52
@@ -76,12 +75,18 @@ When the CFT is deployed it will create everything needed to complete the demo i
                 - Maps to allocated EIP
             - Secondary Address: 10.10.2.70
                 - Maps to allocated EIP
-        - Big-IP Private Interface (Eth2)
             - Security Group:
-                - Allow all traffic from 10.10.0.0/16
+                - Allow TCP/80,443,8080,8443 from 0.0.0.0/0
+        - Big-IP Private Interface (Eth2)
             - Primary Address: 10.10.3.50
             - Secondary Address: 10.10.3.51
             - Secondary Address: 10.10.3.52
+            - Security Group:
+                - Allow all traffic from 10.10.0.0/16      
+        - DockerHost Private Interface (Eth0)
+            - Primary Address: 10.10.3.20
+                - Security Group:
+                    - Allow all traffic from 10.10.0.0/16
 
 ## Kubernetes
 After the jump host finishes initializing cloudinit provision two additional EC2 instances (T3.Medium) using KOPs. These instances are deployed in the Private_Subnet and use AutoScale groups to manage scale. The K8s configuration is stored in a S3 Bucket.
@@ -125,3 +130,6 @@ The deprovision script deletes the K8s environment and cleans up all artifacts a
 1. Add support for infrastructure only deployments
 1. Add support for Bring Your Own Licensed Big-IP
 1. Add support for deployment to existing K8s environment
+
+## Change Log
+- 2.0 - updated to include support for nginx-plus-ingress and private docker registry
