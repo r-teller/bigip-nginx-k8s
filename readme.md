@@ -20,7 +20,7 @@
 # Overview
 This demo was put in place to simplify the process of deploying F5 BIG-IP & NGINX-Ingress Controller running inside of Kubernetes and was based on the bridging the divide webinar.
 
-The provided CFT will create all required decencies in AWS and deploy a configured Big-IP and Kubernetes environment. Once the environment is created you will be able to demo the following scenarios
+The provided CFT will create all required dependencies in AWS and deploy a configured Big-IP and Kubernetes environment. Once the environment is created you will be able to demo the following scenarios
 1.	Big-IP acting as the initial point of ingress into a customers environment with a manually configured virtual-server managed by David that is able to dynamically forward traffic to nginx-ingress controller that is owned by Olivia
 2.	Big-IP acting as the initial point of ingress into a customers environment with a dynamically configured virtual-server that is able to dynamically forward traffic to nginx-ingress controller, both objects are managed by Olivia
 3.	Olivia easily adds OWASP top 10 protection to her application by updating the K8s configuration
