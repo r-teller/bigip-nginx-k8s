@@ -1,4 +1,4 @@
-apiVersion: k8s.nginx.org/v1alpha1
+apiVersion: k8s.nginx.org/v1
 kind: VirtualServer
 metadata:
   name: financial-reporting
@@ -10,4 +10,5 @@ spec:
     port: 80
   routes:
   - path: /
-    pass: financial-reporting-v1
+    action:
+      pass: financial-reporting-v1
