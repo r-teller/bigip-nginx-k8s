@@ -1,6 +1,6 @@
 # Useful Links
 * Deploying K8s in AWS with KOPS
-    * https://github.com/kubernetes/kops/blob/master/docs/aws.md
+    * https://github.com/kubernetes/kops/blob/master/docs/getting_started/aws.md
 * K8s cheat sheet
     * https://kubernetes.io/docs/reference/kubectl/cheatsheet/
 * NGINX Ingress Controller: Install steps
